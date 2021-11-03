@@ -1,0 +1,34 @@
+{
+	"name": "backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"dependencies": {
+		"express": "^4.17.1",
+		"mongoose": "^6.0.12",
+		"ts-node-dev": "^1.1.8"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.13",
+		"@types/node": "^16.11.6",
+		"nodemon": "^2.0.14",
+		"ts-node": "^10.4.0",
+		"typescript": "^4.4.4"
+	},
+	"scripts": {
+		"start": "ts-node ./src/index.ts",
+		"start:prod": "npm run build && node ./dist/src/index.js",
+		"build": "npx tsc"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/EPSEVG-StudentPlatform/backend.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/EPSEVG-StudentPlatform/backend/issues"
+	},
+	"homepage": "https://github.com/EPSEVG-StudentPlatform/backend#readme"
+}
