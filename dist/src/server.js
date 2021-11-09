@@ -12,9 +12,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: false }));
 //Global Variables
 //Routes
-app.get("/", (req, res) => {
-    res.send("helloWorld");
-});
+app.use(require("./routes/userRoutes"));
 //Static Files
 app.use(express.static(path.join(__dirname, "public")));
 module.exports = app;
