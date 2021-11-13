@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 const bcryptjs = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new Schema(
 	{
@@ -12,6 +13,18 @@ const userSchema = new Schema(
 		timestamps: true,
 	}
 );
+
+userSchema.methods.createNewJWT = async function () {
+	const newJWT = await jwt.sign(
+		{ username: this.userName },
+		process.env.ACCESS_TOKEN_SECRET,
+		{
+			algorithm: "HS256",
+			expiresIn: "7200",
+		}
+	);
+	return newJWT;
+};
 
 userSchema.methods.encryptPassword = async (password) => {
 	const salt = await bcryptjs.genSalt(10);

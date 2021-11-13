@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const bcryptjs = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const userSchema = new mongoose_1.Schema({
     userName: { type: String, required: true },
     password: { type: String, required: true },
@@ -19,6 +20,16 @@ const userSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+userSchema.methods.createNewJWT = function () {
+    return __awaiter(this, void 0, void 0, function* () {
+        const newJWT = jwt.sign({ username: this.userName }, process.env.ACCESS_TOKEN_SECRET, {
+            algorithm: "HS256",
+            type: "JWT",
+            expires: "7200",
+        });
+        return newJWT;
+    });
+};
 userSchema.methods.encryptPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
     const salt = yield bcryptjs.genSalt(10);
     return yield bcryptjs.hash(password, salt);
@@ -28,4 +39,5 @@ userSchema.methods.matchPassword = function (password) {
         return yield bcryptjs.compare(password, this.password);
     });
 };
-module.exports = (0, mongoose_1.model)("User", userSchema);
+const user = (0, mongoose_1.model)("user", userSchema);
+exports.default = user;

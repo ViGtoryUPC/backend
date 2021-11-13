@@ -20,6 +20,7 @@ function validateEmail(str: string): Boolean {
 
 const signUp: RequestHandler = async (req: Request, res: Response) => {
 	const errors = [];
+	console.log(req.body);
 	try {
 		const { username, password, confirmPassword, email } = req.body;
 
@@ -74,4 +75,30 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
-export { signUp };
+const signIn: RequestHandler = async (req: Request, res: Response) => {
+	const errors = [];
+	try {
+		const { username, password } = req.body;
+		console.log(username);
+		const usuari = await user.findOne({ userName: username });
+		console.log(usuari);
+		if (!usuari) {
+			return res.status(401).send("User doesn't exist.");
+		}
+		const match = await usuari.matchPassword(password);
+		if (!match) {
+			return res.status(401).send("Password is incorrect");
+		}
+
+		const newJWT = await usuari.createNewJWT();
+		return res.send({
+			jwt: newJWT,
+			text: "Login Successful",
+		});
+	} catch {
+		errors.push({ text: "Something is missing." });
+		res.send(errors);
+	}
+};
+
+export { signUp, signIn };
