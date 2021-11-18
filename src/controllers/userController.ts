@@ -1,6 +1,7 @@
 import { RequestHandler, Request, Response } from "express";
 import user from "../models/user";
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
 
 function validateUserCharacters(str: string): Boolean {
 	return /^[a-zA-Z0-9_\-\.]+$/.test(str);
@@ -23,24 +24,45 @@ function validateEmail(str: string): Boolean {
 	return re.test(str);
 }
 
-async function sendConfirmationEmail(email: String) {
-	const transporter = nodemailer.createTransport({
-		service: "gmail",
-		auth: {
-			user: "gerard.planas1998@gmail.com",
-			pass: "",
-		},
-	});
+async function sendConfirmationEmail(email: String, usuari: any) {
+	try {
+		const emailToken = jwt.sign(
+			{ usuari: usuari },
+			process.env.EMAIL_SECRET,
+			{
+				expiresIn: "1h",
+			}
+		);
 
-	const info = await transporter.sendMail({
-		from: "gerard.planas1998@gmail.com",
-		to: email,
-		subject: "alo presidente",
-		text: "alolaol",
-		html: "<b>Hello world?</b>",
-	});
-	console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+		const url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${emailToken}`;
+		const transporter = nodemailer.createTransport({
+			service: "Gmail",
+			auth: {
+				user: process.env.EMAIL_USER,
+				pass: process.env.EMAIL_PASSWORD,
+			},
+		});
+		await transporter.sendMail({
+			to: email,
+			subject: "Confirma el teu Correu.",
+			html: `Siusplau, entra a aquest link per a confirmar el teu correu: <a href="${url}">${url}</a>`,
+		});
+	} catch (e) {
+		console.log(e);
+	}
 }
+
+const emailValidation: RequestHandler = async (req: Request, res: Response) => {
+	console.log("entro emailValidation :V");
+	try {
+		const {
+			usuari: { usuari },
+		} = jwt.verify(req.params.token, process.env.EMAIL_SECRET);
+		await user.updateOne({ emailConfirmed: true }, { where: { usuari } });
+	} catch (e) {
+		res.send("error");
+	}
+};
 
 const signUp: RequestHandler = async (req: Request, res: Response) => {
 	const errors = [];
@@ -93,13 +115,13 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			if (errors.length > 0) {
 				res.send(errors);
 			} else {
-				//await sendConfirmationEmail("gerard.planas1998@gmail.com");
 				const newUser = new user({
 					userName: username,
 					password: password,
 					email: email,
 					degree: degree,
 				});
+				await sendConfirmationEmail(email, newUser);
 				newUser.password = await newUser.encryptPassword(password);
 				await newUser.save();
 				res.status(201).send("SignUp Success");
@@ -116,17 +138,19 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 	const errors = [];
 	try {
 		const { username, password } = req.body;
-		console.log(username);
 		const usuari = await user.findOne({ userName: username });
-		console.log(usuari);
 		if (!usuari) {
 			return res.status(401).send("User doesn't exist.");
 		}
 		const match = await usuari.matchPassword(password);
 		if (!match) {
-			return res.status(401).send("Password is incorrect");
+			return res.status(401).send("Password is incorrect.");
+		}
+		if (!usuari.emailConfirmed || !usuari.emailEstudiantConfirmed) {
+			return res.status(401).send("Confirm your email.");
 		}
 		const newJWT = await usuari.createNewJWT();
+		console.log(`Login:${usuari.userName}`);
 		return res.status(201).send({
 			jwt: newJWT,
 			text: "Login Successful",
@@ -137,4 +161,4 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
-export { signUp, signIn };
+export { signUp, signIn, emailValidation };
