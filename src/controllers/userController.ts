@@ -1,5 +1,6 @@
 import { RequestHandler, Request, Response } from "express";
 import user from "../models/user";
+import Token from "../models/token";
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
@@ -34,7 +35,12 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 			}
 		);
 
-		const url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${emailToken}`;
+		let token = await new Token({
+			userId: usuari._id,
+			token: emailToken,
+		}).save();
+
+		const url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}`;
 		const transporter = nodemailer.createTransport({
 			service: "Gmail",
 			auth: {
@@ -55,10 +61,19 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 	console.log("entro emailValidation :V");
 	try {
-		const {
-			usuari: { usuari },
-		} = jwt.verify(req.params.token, process.env.EMAIL_SECRET);
-		await user.updateOne({ emailConfirmed: true }, { where: { usuari } });
+		const usuari = await user.findOne({ _id: req.params.id });
+		if (!usuari) return res.status(400).send("Link not valid");
+
+		const token = await Token.findOne({
+			userId: usuari._id,
+			token: req.params.token,
+		});
+		if (!token) return res.status(400).send("Link not valid");
+
+		await user.updateOne({ _id: usuari._id, emailConfirmed: true });
+		await Token.findByIdAndRemove(token._id);
+
+		res.send("Email Verified");
 	} catch (e) {
 		res.send("error");
 	}
@@ -146,7 +161,7 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 		if (!match) {
 			return res.status(401).send("Password is incorrect.");
 		}
-		if (!usuari.emailConfirmed || !usuari.emailEstudiantConfirmed) {
+		if (!usuari.emailConfirmed && !usuari.emailEstudiantConfirmed) {
 			return res.status(401).send("Confirm your email.");
 		}
 		const newJWT = await usuari.createNewJWT();
