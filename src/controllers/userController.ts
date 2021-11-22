@@ -25,6 +25,12 @@ function validateEmail(str: string): Boolean {
 	return re.test(str);
 }
 
+function isStudentMail(email: String): Boolean {
+	if (email.endsWith("@estudiantat.upc.edu")) {
+		return true;
+	} else return false;
+}
+
 async function sendConfirmationEmail(email: String, usuari: any) {
 	try {
 		const emailToken = jwt.sign(
@@ -40,7 +46,12 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 			token: emailToken,
 		}).save();
 
-		const url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}`;
+		let url: String;
+
+		if (isStudentMail(email))
+			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/1`;
+		else
+			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0`;
 		const transporter = nodemailer.createTransport({
 			service: "Gmail",
 			auth: {
@@ -51,7 +62,7 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 		await transporter.sendMail({
 			to: email,
 			subject: "Confirma el teu Correu.",
-			html: `Siusplau, entra a aquest link per a confirmar el teu correu: <a href="${url}">${url}</a>`,
+			html: `Siusplau, entra a aquest link per a confirmar el teu correu: <a href="${url}">Verifica</a>`,
 		});
 	} catch (e) {
 		console.log(e);
@@ -70,10 +81,17 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 		});
 		if (!token) return res.status(400).send("Link not valid");
 
-		await user.updateOne({ _id: usuari._id, emailConfirmed: true });
+		if (req.params.student === "0")
+			await user.updateOne({ _id: usuari._id, emailConfirmed: true });
+		else
+			await user.updateOne({
+				_id: usuari._id,
+				emailStudentConfirmed: true,
+			});
+
 		await Token.findByIdAndRemove(token._id);
 
-		res.send("Email Verified");
+		res.send("Email Verificat, pots tancar aquesta pestanya.");
 	} catch (e) {
 		res.send("error");
 	}
@@ -119,7 +137,12 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 		if (errors.length > 0) {
 			res.send(errors);
 		} else {
-			const emailUser = await user.findOne({ email: email });
+			let emailUser: String;
+			if (isStudentMail(email)) {
+				emailUser = await user.findOne({ emailStudent: email });
+			} else {
+				emailUser = await user.findOne({ email: email });
+			}
 			if (emailUser) {
 				errors.push({ text: "Aquest email ja està en ús." });
 			}
@@ -130,12 +153,22 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			if (errors.length > 0) {
 				res.send(errors);
 			} else {
-				const newUser = new user({
-					userName: username,
-					password: password,
-					email: email,
-					degree: degree,
-				});
+				let newUser;
+				if (isStudentMail(email)) {
+					newUser = new user({
+						userName: username,
+						password: password,
+						emailStudent: email,
+						degree: degree,
+					});
+				} else {
+					newUser = new user({
+						userName: username,
+						password: password,
+						email: email,
+						degree: degree,
+					});
+				}
 				await sendConfirmationEmail(email, newUser);
 				newUser.password = await newUser.encryptPassword(password);
 				await newUser.save();
@@ -161,7 +194,7 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 		if (!match) {
 			return res.status(401).send("Password is incorrect.");
 		}
-		if (!usuari.emailConfirmed && !usuari.emailEstudiantConfirmed) {
+		if (!usuari.emailConfirmed && !usuari.emailStudentConfirmed) {
 			return res.status(401).send("Confirm your email.");
 		}
 		const newJWT = await usuari.createNewJWT();

@@ -13,6 +13,6 @@ router.use("*", headersController);
 //User
 router.post("/user/signUp", signUp);
 router.post("/user/signIn", signIn);
-router.get("/user/emailVerification/:id/:token", emailValidation);
+router.get("/user/emailVerification/:id/:token/:student", emailValidation);
 
 export default router;
