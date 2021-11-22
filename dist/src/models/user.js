@@ -16,16 +16,17 @@ const userSchema = new mongoose_1.Schema({
     userName: { type: String, required: true },
     password: { type: String, required: true },
     email: { type: String },
+    emailConfirmed: { type: Boolean, default: false },
     emailStudent: { type: String },
+    emailStudentConfirmed: { type: Boolean, default: false },
+    degree: { type: Number },
 }, {
     timestamps: true,
 });
 userSchema.methods.createNewJWT = function () {
     return __awaiter(this, void 0, void 0, function* () {
-        const newJWT = jwt.sign({ username: this.userName }, process.env.ACCESS_TOKEN_SECRET, {
+        const newJWT = yield jwt.sign({ username: this.userName }, process.env.ACCESS_TOKEN_SECRET, {
             algorithm: "HS256",
-            type: "JWT",
-            expires: "7200",
         });
         return newJWT;
     });

@@ -82,10 +82,9 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 		if (!token) return res.status(400).send("Link not valid");
 
 		if (req.params.student === "0")
-			await user.updateOne({ _id: usuari._id, emailConfirmed: true });
+			await user.findByIdAndUpdate(usuari._id, { emailConfirmed: true });
 		else
-			await user.updateOne({
-				_id: usuari._id,
+			await user.findByIdAndUpdate(usuari._id, {
 				emailStudentConfirmed: true,
 			});
 
@@ -93,7 +92,7 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 
 		res.send("Email Verificat, pots tancar aquesta pestanya.");
 	} catch (e) {
-		res.send("error");
+		res.send(e);
 	}
 };
 
