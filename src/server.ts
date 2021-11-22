@@ -2,6 +2,8 @@
 
 import express = require("express");
 import path = require("path");
+import { Request, Response, NextFunction } from "express";
+import rutes from "./routes";
 
 //Inits
 const app = express();
@@ -16,7 +18,7 @@ app.use(express.urlencoded({ extended: false }));
 //Global Variables
 
 //Routes
-app.use(require("./routes/userRoutes"));
+app.use(rutes);
 
 //Static Files
 app.use(express.static(path.join(__dirname, "public")));

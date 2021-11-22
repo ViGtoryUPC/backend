@@ -7,7 +7,10 @@ const userSchema = new Schema(
 		userName: { type: String, required: true },
 		password: { type: String, required: true },
 		email: { type: String },
+		emailConfirmed: { type: Boolean, default: false },
 		emailStudent: { type: String },
+		emailStudentConfirmed: { type: Boolean, default: false },
+		degree: { type: Number },
 	},
 	{
 		timestamps: true,
@@ -20,7 +23,6 @@ userSchema.methods.createNewJWT = async function () {
 		process.env.ACCESS_TOKEN_SECRET,
 		{
 			algorithm: "HS256",
-			expiresIn: "7200",
 		}
 	);
 	return newJWT;
