@@ -1,11 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 const jwt = require("jsonwebtoken");
+import user from "../models/user";
 
-export const headersController = (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+const headersController = (req: Request, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", "*");
 	res.setHeader(
 		"Access-Control-Allow-Headers",
@@ -18,4 +15,34 @@ export const headersController = (
 	next();
 };
 
-export default headersController;
+const validateJWT = (req: any, res: Response, next: NextFunction) => {
+	if (
+		req.originalUrl == "/user/signIn" ||
+		req.originalUrl == "/user/signUp" ||
+		req.originalUrl.startsWith("/user/emailVerification")
+	) {
+		next();
+		return;
+	}
+
+	const authHeader = req.headers.authorization;
+
+	if (authHeader) {
+		//https://stackabuse.com/authentication-and-authorization-with-jwts-in-express-js/
+		jwt.verify(
+			authHeader,
+			process.env.ACCESS_TOKEN_SECRET,
+			(err: any, user: any) => {
+				if (err) {
+					return res
+						.status(403)
+						.send("No s'ha pogut validar la sessio.");
+				}
+				res.locals.user = user;
+				next();
+			}
+		);
+	} else res.status(401).send("Cannot validate JWT");
+};
+
+export { headersController, validateJWT };
