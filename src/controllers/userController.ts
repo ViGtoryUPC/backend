@@ -57,7 +57,11 @@ function checkPasswordFormat(password: String, confirmPassword: String) {
 	return errors;
 }
 
-async function sendConfirmationEmail(email: String, usuari: any) {
+async function sendConfirmationEmail(
+	email: String,
+	usuari: any,
+	modified: boolean
+) {
 	try {
 		const emailToken = jwt.sign(
 			{ usuari: usuari },
@@ -75,9 +79,15 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 		let url: String;
 
 		if (isStudentMail(email))
-			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/1`;
-		else
-			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0`;
+			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/1/0`;
+		else {
+			if (modified) {
+				url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0/1`;
+			} else {
+				url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0/0`;
+			}
+		}
+
 		const transporter = nodemailer.createTransport({
 			service: "Gmail",
 			auth: {
@@ -102,7 +112,6 @@ async function sendConfirmationEmail(email: String, usuari: any) {
 //------------------------------------
 
 const emailValidation: RequestHandler = async (req: Request, res: Response) => {
-	console.log(req.path);
 	try {
 		const usuari = await user.findOne({ _id: req.params.id });
 		if (!usuari) return res.status(400).send("Link not valid");
@@ -113,14 +122,25 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 		});
 		if (!token) return res.status(400).send("Link not valid");
 
-		if (req.params.student === "0")
-			await user.findByIdAndUpdate(usuari._id, { emailConfirmed: true });
-		else
+		if (req.params.student === "0") {
+			if (req.params.modified === "0") {
+				await user.findByIdAndUpdate(usuari._id, {
+					emailConfirmed: true,
+				});
+			} else {
+				await user.findByIdAndUpdate(usuari._id, {
+					email: usuari.newEmail,
+				});
+			}
+		} else {
 			await user.findByIdAndUpdate(usuari._id, {
 				emailStudentConfirmed: true,
 			});
-
+		}
 		await Token.findByIdAndRemove(token._id);
+		await await user.findByIdAndUpdate(usuari._id, {
+			$unset: { newEmail: "" },
+		});
 
 		res.send("Email Verificat, pots tancar aquesta pestanya.");
 	} catch (e) {
@@ -148,7 +168,9 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			errors.push("El email no és vàlid.");
 		}
 		if (errors.length > 0) {
-			return res.send(errors);
+			return res.status(403).send({
+				errors: errors,
+			});
 		} else {
 			let emailUser: String;
 			if (isStudentMail(email)) {
@@ -162,6 +184,9 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			const usernameUser = await user.findOne({ userName: username });
 			if (usernameUser) {
 				errors.push("Aquest nom d'usuari ja està en ús.");
+			}
+			if (!degree) {
+				errors.push("Grau d'interès no pot ser buit.");
 			}
 			if (errors.length > 0) {
 				return res.status(403).send({
@@ -184,7 +209,7 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 						degree: degree,
 					});
 				}
-				await sendConfirmationEmail(email, newUser);
+				await sendConfirmationEmail(email, newUser, false);
 				newUser.password = await newUser.encryptPassword(password);
 				await newUser.save();
 				return res
@@ -278,4 +303,82 @@ const modificarPassword: RequestHandler = async (
 		res.send(error);
 	}
 };
-export { signUp, signIn, emailValidation, modificarGrau, modificarPassword };
+
+const getInfoUsuari: RequestHandler = async (req: Request, res: Response) => {
+	const usuari = await user.findOne({
+		userName: res.locals.user.username,
+	});
+	res.status(200).send({
+		email: usuari.email,
+		emailConfirmed: usuari.emailConfirmed,
+		emailStudent: usuari.emailStudent,
+		emailStudentConfirmed: usuari.emailStudentConfirmed,
+		grauInteres: usuari.degree,
+		usuari: res.locals.user.username,
+	});
+};
+
+const afegirSegonCorreu: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	const usuari = await user.findOne({
+		userName: res.locals.user.username,
+	});
+	let email: string = req.body.email;
+	if (!validateEmail(email)) {
+		return res.status(403).send({
+			errors: "L'email no es vàlid.",
+		});
+	}
+	if (
+		(isStudentMail(email) && usuari.emailStudent != null) ||
+		(!isStudentMail(email) && usuari.email != null)
+	) {
+		return res.status(403).send({
+			errors: "L'usuari ja té un email d'aquest tipus.",
+		});
+	}
+	if (isStudentMail(email)) {
+		await user.findOneAndUpdate(res.locals.user.username, {
+			emailStudent: email,
+		});
+	} else {
+		await user.findOneAndUpdate(res.locals.user.username, {
+			email: email,
+		});
+	}
+	await sendConfirmationEmail(email, usuari, false);
+	return res.status(201).send("Email added, validate it.");
+};
+
+const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
+	const usuari = await user.findOne({
+		userName: res.locals.user.username,
+	});
+	let email: string = req.body.email;
+	if (!validateEmail(email)) {
+		return res.status(403).send({
+			errors: "L'email no és vàlid.",
+		});
+	}
+	if (usuari.newEmail != null) {
+		await Token.findOneAndDelete({ userId: usuari._id });
+	}
+	await user.findOneAndUpdate(res.locals.user.username, {
+		newEmail: email,
+	});
+	await sendConfirmationEmail(email, usuari, true);
+	return res.status(201).send("Email modificat correctament");
+};
+
+export {
+	signUp,
+	signIn,
+	emailValidation,
+	modificarGrau,
+	modificarPassword,
+	getInfoUsuari,
+	afegirSegonCorreu,
+	modificarCorreu,
+};
