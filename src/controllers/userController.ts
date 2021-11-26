@@ -79,12 +79,12 @@ async function sendConfirmationEmail(
 		let url: String;
 
 		if (isStudentMail(email))
-			url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/1/0`;
+			url = `${process.env.SERVER}/user/emailVerification/${usuari.id}/${token.token}/1/0`;
 		else {
 			if (modified) {
-				url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0/1`;
+				url = `${process.env.SERVER}/user/emailVerification/${usuari.id}/${token.token}/0/1`;
 			} else {
-				url = `http://ViGtory.ddnsfree.com:27018/user/emailVerification/${usuari.id}/${token.token}/0/0`;
+				url = `${process.env.SERVER}/user/emailVerification/${usuari.id}/${token.token}/0/0`;
 			}
 		}
 
