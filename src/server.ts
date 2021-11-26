@@ -4,6 +4,7 @@ import express = require("express");
 import path = require("path");
 import { Request, Response, NextFunction } from "express";
 import rutes from "./routes";
+import grau from "./models/grau";
 
 //Inits
 const app = express();
