@@ -7,7 +7,7 @@ RUTES SENSE JWT:
 ///////////////////
 http://localhost:4000/user/signUp
 POST
-  Params: 
+  Body:
     username
     password
     confirmPassword
@@ -16,7 +16,7 @@ POST
 
 http://localhost:4000/user/signIn
 POST
-  Params:
+  Body:
     username:
     password:
     
@@ -29,27 +29,27 @@ RUTES AMB JWT:
 ///////////////////
 http://localhost:4000/user/modificarGrau
 POST
-  Params:
+  Body:
     grau
 
 http://localhost:4000/user/modificarContrasenya
 POST
-  Params:
+  Body:
     password
     newPassword
     confirmPassword
     
 http://localhost:4000/user/getInfoUsuari
 GET
-  Params:
+  Body:
     -
     
 http://localhost:4000/afegirSegonCorreu
 POST
-  Params:
+  Body:
     email
 
 http://localhost:4000/modificarCorreu
 POST
-  Params:
+  Body:
     email
