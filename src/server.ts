@@ -8,6 +8,8 @@ import grau from "./models/grau";
 
 //Inits
 const app = express();
+const Grau = new grau();
+Grau.insertGraus();
 
 //Settings
 app.set("port", process.env.PORT || 4000);
