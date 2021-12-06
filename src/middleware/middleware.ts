@@ -28,7 +28,6 @@ const validateJWT = (req: any, res: Response, next: NextFunction) => {
 	const authHeader = req.headers.authorization;
 
 	if (authHeader) {
-		//https://stackabuse.com/authentication-and-authorization-with-jwts-in-express-js/
 		jwt.verify(
 			authHeader,
 			process.env.ACCESS_TOKEN_SECRET,
@@ -42,7 +41,7 @@ const validateJWT = (req: any, res: Response, next: NextFunction) => {
 				next();
 			}
 		);
-	} else res.status(401).send("Cannot validate JWT");
+	} else res.status(401).send("No s'ha rebut cap JWT");
 };
 
 export { headersController, validateJWT };

@@ -9,6 +9,8 @@ const {
 	afegirSegonCorreu,
 	modificarCorreu,
 } = require("./controllers/userController");
+const { getAllGraus } = require("./controllers/grauController");
+const { getAssignatures } = require("./controllers/assignaturaController");
 const { headersController, validateJWT } = require("./middleware/middleware");
 
 const router = Router();
@@ -28,5 +30,11 @@ router.post("/user/modificarContrasenya", modificarPassword);
 router.get("/user/getInfoUsuari", getInfoUsuari);
 router.post("/user/afegirSegonCorreu", afegirSegonCorreu);
 router.post("/user/modificarCorreu", modificarCorreu);
+
+//Grau
+router.get("/grau/getAllGraus", getAllGraus);
+
+//Assignatura
+router.get("/assignatura/getAssignatures", getAssignatures);
 
 export default router;
