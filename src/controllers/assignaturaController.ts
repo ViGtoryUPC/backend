@@ -1,5 +1,6 @@
 import { RequestHandler, Request, Response } from "express";
 import assignatura from "../models/assignatura";
+import user from "../models/user";
 
 //------------------------------------
 //
@@ -8,9 +9,10 @@ import assignatura from "../models/assignatura";
 //------------------------------------
 
 const getAssignatures: RequestHandler = async (req: Request, res: Response) => {
-	let grau: Number = req.body.grau;
+	let username: String = res.locals.user.username;
+	const usuari = await user.findOne({ userName: username });
 	const assignatures = await assignatura
-		.find({ codi_programa: grau })
+		.find({ codi_programa: usuari.degree })
 		.select({
 			nom: 1,
 			sigles_ud: 1,

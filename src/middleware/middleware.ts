@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-const jwt = require("jsonwebtoken");
 import user from "../models/user";
+const jwt = require("jsonwebtoken");
 
 const headersController = (req: Request, res: Response, next: NextFunction) => {
 	res.setHeader("Access-Control-Allow-Origin", "*");
@@ -31,13 +31,23 @@ const validateJWT = (req: any, res: Response, next: NextFunction) => {
 		jwt.verify(
 			authHeader,
 			process.env.ACCESS_TOKEN_SECRET,
-			(err: any, user: any) => {
+			async (err: any, username: any) => {
 				if (err) {
 					return res
 						.status(403)
 						.send("No s'ha pogut validar la sessio.");
 				}
-				res.locals.user = user;
+				//Comprovem que existeix un usuari per aquest JWT
+				const usuari = await user.findOne({
+					userName: username.username,
+				});
+				if (usuari == null) {
+					return res
+						.status(403)
+						.send("No s'ha pogut validar la sessio.");
+				}
+				res.locals.user = username;
+				res.locals.isStudent = usuari.emailStudentConfirmed;
 				next();
 			}
 		);

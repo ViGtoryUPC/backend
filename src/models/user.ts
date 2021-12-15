@@ -12,6 +12,12 @@ const userSchema = new Schema(
 		emailStudent: { type: String },
 		emailStudentConfirmed: { type: Boolean, default: false },
 		degree: { type: Number },
+		votes: [
+			{
+				votat: String,
+				vote: Number,
+			},
+		],
 	},
 	{
 		timestamps: true,
