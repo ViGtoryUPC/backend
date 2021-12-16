@@ -9,6 +9,20 @@ const {
 	afegirSegonCorreu,
 	modificarCorreu,
 } = require("./controllers/userController");
+const { getAllGraus } = require("./controllers/grauController");
+const { getAssignatures } = require("./controllers/assignaturaController");
+const {
+	newAportacio,
+	getAllAportacionsForAssignatura,
+	getAportacio,
+	voteAportacio,
+} = require("./controllers/aportacioController");
+const {
+	newComentari,
+	getComentaris,
+	voteComentari,
+} = require("./controllers/comentariController");
+
 const { headersController, validateJWT } = require("./middleware/middleware");
 
 const router = Router();
@@ -28,5 +42,25 @@ router.post("/user/modificarContrasenya", modificarPassword);
 router.get("/user/getInfoUsuari", getInfoUsuari);
 router.post("/user/afegirSegonCorreu", afegirSegonCorreu);
 router.post("/user/modificarCorreu", modificarCorreu);
+
+//Grau
+router.get("/grau/getAllGraus", getAllGraus);
+
+//Assignatura
+router.get("/assignatura/getAssignatures", getAssignatures);
+
+//Aportacio
+router.post("/aportacio/newAportacio", newAportacio);
+router.get(
+	"/aportacio/getAllAportacionsForAssignatura",
+	getAllAportacionsForAssignatura
+);
+router.get("/aportacio/getAportacio", getAportacio);
+router.post("/aportacio/voteAportacio", voteAportacio);
+
+//Comentari
+router.post("/comentari/newComentari", newComentari);
+router.get("/comentari/getComentaris", getComentaris);
+router.post("/comentari/voteComentari", voteComentari);
 
 export default router;

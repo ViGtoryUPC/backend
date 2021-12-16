@@ -2,7 +2,6 @@
 
 import express = require("express");
 import path = require("path");
-import { Request, Response, NextFunction } from "express";
 import rutes from "./routes";
 
 //Inits

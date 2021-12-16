@@ -51,7 +51,7 @@ function checkPasswordFormat(password: String, confirmPassword: String) {
 		!hasNumbers(password)
 	) {
 		errors.push(
-			"Password must contain at least one uppercase, one lowercase and a number."
+			"La contrasenya ha de tenir com a mínim una majúscula, una minúscula i un número."
 		);
 	}
 	return errors;
@@ -114,13 +114,13 @@ async function sendConfirmationEmail(
 const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 	try {
 		const usuari = await user.findOne({ _id: req.params.id });
-		if (!usuari) return res.status(400).send("Link not valid");
+		if (!usuari) return res.status(400).send("Link no vàlid");
 
 		const token = await Token.findOne({
 			userId: usuari._id,
 			token: req.params.token,
 		});
-		if (!token) return res.status(400).send("Link not valid");
+		if (!token) return res.status(400).send("Link no vàlid");
 
 		if (req.params.student === "0") {
 			if (req.params.modified === "0") {
@@ -214,12 +214,12 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 				await newUser.save();
 				return res
 					.status(201)
-					.send("SignUp Success, validate your Email");
+					.send("T'has registrat correctament, valida el teu Email");
 			}
 		}
 	} catch (error) {
 		console.log(error);
-		errors.push("Something is missing.");
+		errors.push("Falta alguna cosa.");
 		res.send(errors);
 	}
 };
@@ -230,24 +230,24 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 		const { username, password } = req.body;
 		const usuari = await user.findOne({ userName: username });
 		if (!usuari) {
-			return res.status(401).send("User doesn't exist.");
+			return res.status(401).send("L'usuari no existeix.");
 		}
 		const match = await usuari.matchPassword(password);
 		if (!match) {
-			return res.status(401).send("Password is incorrect.");
+			return res.status(401).send("La contrasenya és incorrecta.");
 		}
 		if (!usuari.emailConfirmed && !usuari.emailStudentConfirmed) {
-			return res.status(401).send("Confirm your email.");
+			return res.status(401).send("Valida el teu Email.");
 		}
 		const newJWT = await usuari.createNewJWT();
 		console.log(`Login:${usuari.userName}`);
 		return res.status(201).send({
 			jwt: newJWT,
-			text: "Login Successful",
+			text: "Login correcte",
 			usuari: usuari.userName,
 		});
 	} catch {
-		errors.push({ text: "Something is missing." });
+		errors.push({ text: "Falta alguna cosa." });
 		res.send(errors);
 	}
 };
@@ -349,7 +349,7 @@ const afegirSegonCorreu: RequestHandler = async (
 		});
 	}
 	await sendConfirmationEmail(email, usuari, false);
-	return res.status(201).send("Email added, validate it.");
+	return res.status(201).send("Email afegit, siusplau valida'l.");
 };
 
 const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
