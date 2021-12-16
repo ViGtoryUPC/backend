@@ -5,20 +5,21 @@ Iniciar servidor: $ npm run start
 ///////////////////
 RUTES SENSE JWT:
 ///////////////////
-http://localhost:4000/user/signUp
-POST
-  Body:
-    username
-    password
-    confirmPassword
-    email
-    degree
 
-http://localhost:4000/user/signIn
-POST
-  Body:
-    username:
-    password:
+    http://localhost:4000/user/signUp
+    POST
+      Body:
+        username
+        password
+        confirmPassword
+        email
+        degree
+
+    http://localhost:4000/user/signIn
+    POST
+      Body:
+        username:
+        password:
     
     
     
