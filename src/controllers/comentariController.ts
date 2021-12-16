@@ -49,27 +49,39 @@ const newComentari: RequestHandler = async (req: Request, res: Response) => {
 
 const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 	let idAportacio: String = req.body.idAportacio;
-	const pagina: number = parseInt(req.body.pagina);
-	const limit: number = parseInt(req.body.limit);
 	let username: String = res.locals.user.username;
 	if (idAportacio.length == 24) {
 		const comentaris = await comentari
-			.find({ aportacio: idAportacio })
-			.sort({ createdAt: 1 })
+		.find({ aportacio: idAportacio })
+		.sort({ createdAt: 1 })
+		.select({
+			userName: 1,
+			aportacio: 1,
+			body: 1,
+			parent: 1,
+			votes: 1,
+			createdAt: 1,
+		}).lean();
+
+		let votsUsuari: any = await user
+			.find({
+				userName: username,
+			})
 			.select({
-				userName: 1,
-				aportacio: 1,
-				body: 1,
-				parent: 1,
 				votes: 1,
-				createdAt: 1,
 			});
-		
-		} else {
-			return res.status(200).send({
-				comentaris: comentaris,
+		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
+		comentaris.forEach(function (comenta: any) {
+			votsUsuari.forEach(function (votUsuari: any) {
+				if (comenta._id == votUsuari.votat) {
+					comenta.votUsuari = votUsuari.vote;
+				}
 			});
-		}
+		});
+
+		return res.status(200).send({
+			comentaris: comentaris,
+		});
 	} else {
 		return res.status(401).send({
 			text: "id no vàlid.",
