@@ -14,6 +14,7 @@ const userSchema = new Schema(
 		degree: { type: Number },
 		votes: [
 			{
+				aportacio: String,
 				votat: String,
 				vote: Number,
 			},

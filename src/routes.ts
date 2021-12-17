@@ -16,6 +16,7 @@ const {
 	getAllAportacionsForAssignatura,
 	getAportacio,
 	voteAportacio,
+	deleteAportacio,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -57,6 +58,7 @@ router.get(
 );
 router.get("/aportacio/getAportacio", getAportacio);
 router.post("/aportacio/voteAportacio", voteAportacio);
+router.post("/aportacio/deleteAportacio", deleteAportacio);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);

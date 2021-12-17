@@ -1,7 +1,7 @@
 import { RequestHandler, Request, Response } from "express";
-import { Number } from "mongoose";
 import aportacio from "../models/aportacio";
 import user from "../models/user";
+import comentari from "../models/comentari";
 
 //------------------------------------
 //
@@ -188,7 +188,13 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				$inc: { votes: 1 },
 			});
 			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: aportacioId, vote: vot } },
+				$push: {
+					votes: {
+						aportacio: aportacioId,
+						votat: aportacioId,
+						vote: vot,
+					},
+				},
 			});
 			return res.status(200).send({
 				text: "Vot registrat",
@@ -198,7 +204,13 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				$inc: { votes: -1 },
 			});
 			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: aportacioId, vote: vot } },
+				$push: {
+					votes: {
+						aportacio: aportacioId,
+						votat: aportacioId,
+						vote: vot,
+					},
+				},
 			});
 			return res.status(200).send({
 				text: "Vot registrat",
@@ -267,9 +279,49 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
+	let username: String = res.locals.user.username;
+	let aportacioId: String = req.body.aportacioId;
+
+	try {
+		const aportacioToDelete = await aportacio.findById({
+			_id: aportacioId,
+		});
+		const borrat = await aportacio.findOneAndRemove({
+			_id: aportacioToDelete,
+			userName: username,
+		});
+		if (borrat == null) {
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		} else {
+			await comentari.deleteMany({
+				aportacio: borrat,
+			});
+			await user.updateMany(
+				{
+					votes: { $elemMatch: { aportacio: aportacioId } },
+				},
+				{
+					$pull: { votes: { aportacio: aportacioId } },
+				}
+			);
+			return res.status(200).send({
+				text: "Aportació borrada",
+			});
+		}
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 export {
 	newAportacio,
 	getAllAportacionsForAssignatura,
 	getAportacio,
 	voteAportacio,
+	deleteAportacio,
 };

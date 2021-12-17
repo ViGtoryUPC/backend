@@ -52,16 +52,17 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	if (idAportacio.length == 24) {
 		const comentaris = await comentari
-		.find({ aportacio: idAportacio })
-		.sort({ createdAt: 1 })
-		.select({
-			userName: 1,
-			aportacio: 1,
-			body: 1,
-			parent: 1,
-			votes: 1,
-			createdAt: 1,
-		}).lean();
+			.find({ aportacio: idAportacio })
+			.sort({ createdAt: 1 })
+			.select({
+				userName: 1,
+				aportacio: 1,
+				body: 1,
+				parent: 1,
+				votes: 1,
+				createdAt: 1,
+			})
+			.lean();
 
 		let votsUsuari: any = await user
 			.find({
@@ -92,6 +93,7 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let comentariId: String = req.body.comentariId;
+	let aportacioId: String = req.body.aportacioId;
 	let vot: number = req.body.vote;
 	if (!res.locals.isStudent) {
 		return res.status(401).send({
@@ -120,7 +122,13 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 				$inc: { votes: 1 },
 			});
 			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: comentariId, vote: vot } },
+				$push: {
+					votes: {
+						aportacio: aportacioId,
+						votat: comentariId,
+						vote: vot,
+					},
+				},
 			});
 			return res.status(200).send({
 				text: "Vot registrat",
@@ -130,7 +138,13 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 				$inc: { votes: -1 },
 			});
 			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: comentariId, vote: vot } },
+				$push: {
+					votes: {
+						aportacio: aportacioId,
+						votat: comentariId,
+						vote: vot,
+					},
+				},
 			});
 			return res.status(200).send({
 				text: "Vot registrat",
