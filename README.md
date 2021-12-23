@@ -112,7 +112,21 @@ RUTES AMB JWT:
     POST
       body:
         comentariId
+        aportacioId
         vote (1 o -1)
+        
+    http://localhost:4000/comentari/deleteComentari
+    POST
+        body:
+            aportacioId
+   
+    http://localhost:4000/aportacio/deleteAportacio
+    POST
+        body:
+            comentariId
+    
+    
+        
       
     
       
