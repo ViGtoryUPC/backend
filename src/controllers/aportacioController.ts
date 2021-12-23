@@ -180,22 +180,24 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 		},
 		{ votes: { $elemMatch: { votat: aportacioId } } }
 	);
-
 	if (votUsuari.length == 0) {
 		//Si l'usuari encara no ha votat en aquella aportacio:
 		if (vot == 1) {
 			await aportacio.findByIdAndUpdate(aportacioId, {
 				$inc: { votes: 1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: {
-					votes: {
-						aportacio: aportacioId,
-						votat: aportacioId,
-						vote: vot,
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: aportacioId,
+							vote: vot,
+						},
 					},
-				},
-			});
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -203,15 +205,18 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 			await aportacio.findByIdAndUpdate(aportacioId, {
 				$inc: { votes: -1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: {
-					votes: {
-						aportacio: aportacioId,
-						votat: aportacioId,
-						vote: vot,
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: aportacioId,
+							vote: vot,
+						},
 					},
-				},
-			});
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -229,9 +234,12 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: -1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: aportacioId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: aportacioId } },
+					}
+				);
 			} else {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: 2 },
@@ -264,9 +272,12 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: 1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: aportacioId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: aportacioId } },
+					}
+				);
 			}
 		} else {
 			return res.status(401).send({

@@ -1,5 +1,4 @@
 import { Schema, model } from "mongoose";
-import { getAllAportacionsForAssignatura } from "src/controllers/aportacioController";
 
 const aportacioSchema = new Schema(
 	{

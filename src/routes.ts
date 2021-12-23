@@ -22,6 +22,7 @@ const {
 	newComentari,
 	getComentaris,
 	voteComentari,
+	deleteComentari,
 } = require("./controllers/comentariController");
 
 const { headersController, validateJWT } = require("./middleware/middleware");
@@ -64,5 +65,6 @@ router.post("/aportacio/deleteAportacio", deleteAportacio);
 router.post("/comentari/newComentari", newComentari);
 router.get("/comentari/getComentaris", getComentaris);
 router.post("/comentari/voteComentari", voteComentari);
+router.post("/comentari/deleteComentari", deleteComentari);
 
 export default router;

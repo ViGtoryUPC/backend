@@ -14,6 +14,7 @@ const comentariSchema = new Schema(
 			ref: "comentari",
 			required: false,
 		},
+		esborrat: { type: Boolean, required: true, default: false },
 		votes: { type: Number, required: true, default: 0 },
 	},
 	{
