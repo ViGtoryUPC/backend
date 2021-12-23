@@ -52,16 +52,18 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	if (idAportacio.length == 24) {
 		const comentaris = await comentari
-		.find({ aportacio: idAportacio })
-		.sort({ createdAt: 1 })
-		.select({
-			userName: 1,
-			aportacio: 1,
-			body: 1,
-			parent: 1,
-			votes: 1,
-			createdAt: 1,
-		}).lean();
+			.find({ aportacio: idAportacio })
+			.sort({ createdAt: 1 })
+			.select({
+				userName: 1,
+				aportacio: 1,
+				body: 1,
+				esborrat: 1,
+				parent: 1,
+				votes: 1,
+				createdAt: 1,
+			})
+			.lean();
 
 		let votsUsuari: any = await user
 			.find({
@@ -89,9 +91,31 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const deleteComentari: RequestHandler = async (req: Request, res: Response) => {
+	let username: string = res.locals.user.username;
+	let comentariId: string = req.body.comentariId;
+	try {
+		const comentariBorrat = await comentari.findOneAndUpdate(
+			{
+				_id: comentariId,
+				userName: username,
+			},
+			{ $set: { body: "<comentari esborrat>", esborrat: true } }
+		);
+		return res.status(200).send({
+			comentari: comentariBorrat,
+		});
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let comentariId: String = req.body.comentariId;
+	let aportacioId: String = req.body.aportacioId;
 	let vot: number = req.body.vote;
 	if (!res.locals.isStudent) {
 		return res.status(401).send({
@@ -112,16 +136,24 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 		},
 		{ votes: { $elemMatch: { votat: comentariId } } }
 	);
-
 	if (votUsuari.length == 0) {
 		//Si l'usuari encara no ha votat en aquella aportacio:
 		if (vot == 1) {
 			await comentari.findByIdAndUpdate(comentariId, {
 				$inc: { votes: 1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: comentariId, vote: vot } },
-			});
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: comentariId,
+							vote: vot,
+						},
+					},
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -129,9 +161,18 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 			await comentari.findByIdAndUpdate(comentariId, {
 				$inc: { votes: -1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: comentariId, vote: vot } },
-			});
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: comentariId,
+							vote: vot,
+						},
+					},
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -149,9 +190,12 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 				await comentari.findByIdAndUpdate(comentariId, {
 					$inc: { votes: -1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: comentariId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: comentariId } },
+					}
+				);
 			} else {
 				await comentari.findByIdAndUpdate(comentariId, {
 					$inc: { votes: 2 },
@@ -184,9 +228,12 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 				await comentari.findByIdAndUpdate(comentariId, {
 					$inc: { votes: 1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: comentariId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: comentariId } },
+					}
+				);
 			}
 		} else {
 			return res.status(401).send({
@@ -199,4 +246,4 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
-export { newComentari, getComentaris, voteComentari };
+export { newComentari, getComentaris, voteComentari, deleteComentari };

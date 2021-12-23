@@ -1,7 +1,7 @@
 import { RequestHandler, Request, Response } from "express";
-import { Number } from "mongoose";
 import aportacio from "../models/aportacio";
 import user from "../models/user";
+import comentari from "../models/comentari";
 
 //------------------------------------
 //
@@ -180,16 +180,24 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 		},
 		{ votes: { $elemMatch: { votat: aportacioId } } }
 	);
-
 	if (votUsuari.length == 0) {
 		//Si l'usuari encara no ha votat en aquella aportacio:
 		if (vot == 1) {
 			await aportacio.findByIdAndUpdate(aportacioId, {
 				$inc: { votes: 1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: aportacioId, vote: vot } },
-			});
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: aportacioId,
+							vote: vot,
+						},
+					},
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -197,9 +205,18 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 			await aportacio.findByIdAndUpdate(aportacioId, {
 				$inc: { votes: -1 },
 			});
-			await user.findOneAndUpdate(username, {
-				$push: { votes: { votat: aportacioId, vote: vot } },
-			});
+			await user.findOneAndUpdate(
+				{ userName: username },
+				{
+					$push: {
+						votes: {
+							aportacio: aportacioId,
+							votat: aportacioId,
+							vote: vot,
+						},
+					},
+				}
+			);
 			return res.status(200).send({
 				text: "Vot registrat",
 			});
@@ -217,9 +234,12 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: -1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: aportacioId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: aportacioId } },
+					}
+				);
 			} else {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: 2 },
@@ -252,9 +272,12 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 				await aportacio.findByIdAndUpdate(aportacioId, {
 					$inc: { votes: 1 },
 				});
-				await user.findOneAndUpdate(username, {
-					$pull: { votes: { votat: aportacioId } },
-				});
+				await user.findOneAndUpdate(
+					{ userName: username },
+					{
+						$pull: { votes: { votat: aportacioId } },
+					}
+				);
 			}
 		} else {
 			return res.status(401).send({
@@ -267,9 +290,49 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
+	let username: String = res.locals.user.username;
+	let aportacioId: String = req.body.aportacioId;
+
+	try {
+		const aportacioToDelete = await aportacio.findById({
+			_id: aportacioId,
+		});
+		const borrat = await aportacio.findOneAndRemove({
+			_id: aportacioToDelete,
+			userName: username,
+		});
+		if (borrat == null) {
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		} else {
+			await comentari.deleteMany({
+				aportacio: borrat,
+			});
+			await user.updateMany(
+				{
+					votes: { $elemMatch: { aportacio: aportacioId } },
+				},
+				{
+					$pull: { votes: { aportacio: aportacioId } },
+				}
+			);
+			return res.status(200).send({
+				text: "Aportació borrada",
+			});
+		}
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 export {
 	newAportacio,
 	getAllAportacionsForAssignatura,
 	getAportacio,
 	voteAportacio,
+	deleteAportacio,
 };

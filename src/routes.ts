@@ -16,11 +16,13 @@ const {
 	getAllAportacionsForAssignatura,
 	getAportacio,
 	voteAportacio,
+	deleteAportacio,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
 	getComentaris,
 	voteComentari,
+	deleteComentari,
 } = require("./controllers/comentariController");
 
 const { headersController, validateJWT } = require("./middleware/middleware");
@@ -57,10 +59,12 @@ router.get(
 );
 router.get("/aportacio/getAportacio", getAportacio);
 router.post("/aportacio/voteAportacio", voteAportacio);
+router.post("/aportacio/deleteAportacio", deleteAportacio);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);
 router.get("/comentari/getComentaris", getComentaris);
 router.post("/comentari/voteComentari", voteComentari);
+router.post("/comentari/deleteComentari", deleteComentari);
 
 export default router;
