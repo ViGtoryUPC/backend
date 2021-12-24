@@ -2,6 +2,7 @@ import { RequestHandler, Request, Response } from "express";
 import aportacio from "../models/aportacio";
 import user from "../models/user";
 import comentari from "../models/comentari";
+import fs from "fs";
 
 //------------------------------------
 //
@@ -290,6 +291,32 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const addFile: RequestHandler = async (req: Request, res: Response) => {
+	let aportacioId: string = req.body.aportacioId;
+	let username: string = res.locals.user.username;
+
+	if (aportacioId.length == 24) {
+		const aportacioExists = await aportacio.findOne({
+			userName: username,
+			_id: aportacioId,
+		});
+		if (!aportacioExists) {
+			fs.rmSync("./public/files/" + aportacioId, { recursive: true });
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		}
+	} else {
+		fs.rmSync("./public/files/" + aportacioId, { recursive: true });
+		return res.status(401).send({
+			text: "Aportació no vàlida",
+		});
+	}
+	return res.send({
+		text: "Fitxer Afegit",
+	});
+};
+
 const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let aportacioId: String = req.body.aportacioId;
@@ -335,4 +362,5 @@ export {
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
+	addFile,
 };

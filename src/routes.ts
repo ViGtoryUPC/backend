@@ -17,6 +17,7 @@ const {
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
+	addFile,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -26,6 +27,7 @@ const {
 } = require("./controllers/comentariController");
 
 const { headersController, validateJWT } = require("./middleware/middleware");
+import upload from "./middleware/multer";
 
 const router = Router();
 //Middleware
@@ -60,6 +62,7 @@ router.get(
 router.get("/aportacio/getAportacio", getAportacio);
 router.post("/aportacio/voteAportacio", voteAportacio);
 router.post("/aportacio/deleteAportacio", deleteAportacio);
+router.post("/aportacio/addFile", upload.single("file"), addFile);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);
