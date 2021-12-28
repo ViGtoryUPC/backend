@@ -3,6 +3,7 @@ import aportacio from "../models/aportacio";
 import user from "../models/user";
 import comentari from "../models/comentari";
 import fs from "fs";
+import { zip } from "zip-a-folder";
 
 //------------------------------------
 //
@@ -295,7 +296,7 @@ const addFile: RequestHandler = async (req: Request, res: Response) => {
 	let aportacioId: string = req.body.aportacioId;
 	let username: string = res.locals.user.username;
 
-	if (aportacioId.length == 24) {
+	if (aportacioId.length == 24 && aportacioId.match(/^[0-9a-fA-F]{24}$/)) {
 		const aportacioExists = await aportacio.findOne({
 			userName: username,
 			_id: aportacioId,
@@ -356,6 +357,121 @@ const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const getFileNamesAportacio: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	let aportacioId: String = req.body.aportacioId;
+	try {
+		if (
+			aportacioId.length == 24 &&
+			aportacioId.match(/^[0-9a-fA-F]{24}$/)
+		) {
+			const aportacioExists = await aportacio.findOne({
+				_id: aportacioId,
+			});
+			if (!aportacioExists) {
+				return res.status(401).send({
+					text: "Aportació no vàlida",
+				});
+			}
+		} else {
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		}
+		const folder: string = "./public/files/" + aportacioId;
+		let fitxers: string[] = [];
+		await fs.readdir(folder, (err, files) => {
+			files.forEach((file) => {
+				fitxers.push(file);
+			});
+			return res.status(200).send({
+				files: fitxers,
+			});
+		});
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
+const downloadFile: RequestHandler = async (req: Request, res: Response) => {
+	let aportacioId: String = req.body.aportacioId;
+	let nomFitxer: String = req.body.nomFitxer;
+	try {
+		if (
+			aportacioId.length == 24 &&
+			aportacioId.match(/^[0-9a-fA-F]{24}$/)
+		) {
+			const aportacioExists = await aportacio.findOne({
+				_id: aportacioId,
+			});
+			if (!aportacioExists) {
+				return res.status(401).send({
+					text: "Aportació no vàlida",
+				});
+			}
+		} else {
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		}
+		if (fs.existsSync("./public/files/" + aportacioId + "/" + nomFitxer)) {
+			const fitxer: string =
+				"./public/files/" + aportacioId + "/" + nomFitxer;
+			res.download(fitxer);
+		} else {
+			return res.status(401).send({
+				error: "El fitxer no existeix.",
+			});
+		}
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
+const downloadAllFiles: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	let aportacioId: String = req.body.aportacioId;
+	try {
+		if (
+			aportacioId.length == 24 &&
+			aportacioId.match(/^[0-9a-fA-F]{24}$/)
+		) {
+			const aportacioExists = await aportacio.findOne({
+				_id: aportacioId,
+			});
+			if (!aportacioExists) {
+				return res.status(401).send({
+					text: "Aportació no vàlida",
+				});
+			}
+		} else {
+			return res.status(401).send({
+				text: "Aportació no vàlida",
+			});
+		}
+		console.log("a");
+		await zip(
+			"./public/files/" + aportacioId,
+			"./public/files/" + aportacioId + ".zip"
+		);
+		res.download("./public/files/" + aportacioId + ".zip", function () {
+			fs.unlinkSync("./public/files/" + aportacioId + ".zip");
+		});
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 export {
 	newAportacio,
 	getAllAportacionsForAssignatura,
@@ -363,4 +479,7 @@ export {
 	voteAportacio,
 	deleteAportacio,
 	addFile,
+	getFileNamesAportacio,
+	downloadFile,
+	downloadAllFiles,
 };
