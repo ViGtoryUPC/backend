@@ -124,6 +124,30 @@ RUTES AMB JWT:
     POST
         body:
             comentariId
+            
+    http://localhost:4000/aportacio/getFileNamesAportacio
+    GET
+        body:
+            aportacioId
+            
+    http://localhost:4000/aportacio/downloadFile
+    GET
+        body:
+            aportacioId
+            nomFitxer
+    
+    http://localhost:4000/aportacio/downloadAllFiles
+    GET
+        body:
+            aportacioId
+     
+    http://localhost:4000/aportacio/addFile
+    POST
+        body: (ENVIAR COM A FORM-DATA EN VES DE X-WWW-FORM-URLENCODED)
+            aportacioId
+            file (fitxer)
+            
+    
     
     
         
