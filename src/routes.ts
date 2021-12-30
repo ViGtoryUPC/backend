@@ -21,6 +21,7 @@ const {
 	getFileNamesAportacio,
 	downloadFile,
 	downloadAllFiles,
+	getAllAportacionsForUser,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -69,6 +70,7 @@ router.post("/aportacio/addFile", upload.single("file"), addFile);
 router.get("/aportacio/getFileNamesAportacio", getFileNamesAportacio);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
+router.get("/aportacio/getAllAportacionsForUser", getAllAportacionsForUser);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);

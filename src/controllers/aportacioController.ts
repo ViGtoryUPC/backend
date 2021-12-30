@@ -472,9 +472,88 @@ const downloadAllFiles: RequestHandler = async (
 	}
 };
 
+const getAllAportacionsForUser: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	const pagina: number = parseInt(req.body.pagina);
+	const limit: number = parseInt(req.body.limit);
+	let username: String = res.locals.user.username;
+
+	const startIndex: number = (pagina - 1) * limit;
+	const endIndex: number = pagina * limit;
+
+	if ((await aportacio.countDocuments({ userName: username }).exec()) == 0) {
+		return res.status(401).send({
+			text: "No existeixen aportacions per aquest usuari.",
+		});
+	}
+
+	let seguent = {};
+	let anterior = {};
+
+	if (
+		endIndex <
+		(await aportacio.countDocuments({ userName: username }).exec())
+	) {
+		seguent = {
+			pagina: pagina + 1,
+			limit: limit,
+		};
+	}
+
+	if (startIndex > 0) {
+		anterior = {
+			pagina: pagina - 1,
+			limit: limit,
+		};
+	}
+
+	try {
+		const aportacions = await aportacio
+			.find({ userName: username })
+			.limit(limit)
+			.skip(startIndex)
+			.select({
+				userName: 1,
+				title: 1,
+				votes: 1,
+				createdAt: 1,
+			})
+			.lean();
+
+		let votsUsuari: any = await user
+			.find({
+				userName: username,
+			})
+			.select({
+				votes: 1,
+			});
+		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
+		aportacions.forEach(function (aporta: any) {
+			votsUsuari.forEach(function (votUsuari: any) {
+				if (aporta._id == votUsuari.votat) {
+					aporta.votUsuari = votUsuari.vote;
+				}
+			});
+		});
+
+		return res.status(200).send({
+			aportacions: aportacions,
+			anterior: anterior,
+			seguent: seguent,
+		});
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 export {
 	newAportacio,
 	getAllAportacionsForAssignatura,
+	getAllAportacionsForUser,
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
