@@ -10,7 +10,11 @@ const {
 	modificarCorreu,
 } = require("./controllers/userController");
 const { getAllGraus } = require("./controllers/grauController");
-const { getAssignatures } = require("./controllers/assignaturaController");
+const {
+	getAssignatures,
+	voteAssignatura,
+	getVotesAssignatura,
+} = require("./controllers/assignaturaController");
 const {
 	newAportacio,
 	getAllAportacionsForAssignatura,
@@ -22,6 +26,7 @@ const {
 	downloadFile,
 	downloadAllFiles,
 	getAllAportacionsForUser,
+	deleteAllAportacionsForUser,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -56,6 +61,8 @@ router.get("/grau/getAllGraus", getAllGraus);
 
 //Assignatura
 router.get("/assignatura/getAssignatures", getAssignatures);
+router.post("/assignatura/voteAssignatura", voteAssignatura);
+router.get("/assignatura/getVotesAssignatura", getVotesAssignatura);
 
 //Aportacio
 router.post("/aportacio/newAportacio", newAportacio);
@@ -71,6 +78,10 @@ router.get("/aportacio/getFileNamesAportacio", getFileNamesAportacio);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
 router.get("/aportacio/getAllAportacionsForUser", getAllAportacionsForUser);
+router.post(
+	"/aportacio/deleteAllAportacionsForUser",
+	deleteAllAportacionsForUser
+);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);

@@ -550,6 +550,31 @@ const getAllAportacionsForUser: RequestHandler = async (
 	}
 };
 
+const deleteAllAportacionsForUser: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	let username: String = res.locals.user.username;
+	try {
+		if (
+			(await aportacio.countDocuments({ userName: username }).exec()) != 0
+		) {
+			await aportacio.deleteMany({ userName: username });
+			return res.status(200).send({
+				text: "Aportacions esborrades.",
+			});
+		} else {
+			return res.status(401).send({
+				text: "L'usuari no té cap aportació.",
+			});
+		}
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 export {
 	newAportacio,
 	getAllAportacionsForAssignatura,
@@ -561,4 +586,5 @@ export {
 	getFileNamesAportacio,
 	downloadFile,
 	downloadAllFiles,
+	deleteAllAportacionsForUser,
 };
