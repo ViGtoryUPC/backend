@@ -19,6 +19,11 @@ const userSchema = new Schema(
 				vote: Number,
 			},
 		],
+		votesAssignatures: [
+			{
+				assignatura: String,
+			},
+		],
 	},
 	{
 		timestamps: true,
