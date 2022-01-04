@@ -147,6 +147,20 @@ RUTES AMB JWT:
             aportacioId
             file (fitxer)
             
+    http://localhost:4000/assignatura/voteAssignatura
+    POST
+        body: 
+            assignaturaId (p.e. PMUD-I7023)
+            votDificultat
+            votProfessorat
+            votInteresant
+            votFeina
+    
+    http://localhost:4000/assignatura/getVotesAssignatura
+    GET
+        body:
+            assignaturaId
+            
     
     
     
