@@ -84,6 +84,8 @@ RUTES AMB JWT:
         sigles_ud
         pagina (pagina a mostrar de la paginacio)
         limit (nombre d'aportacions per pàgina)
+        ordre (0-Data, 1-Vots)
+        criteri (1-Ascendent -1-Descendent)
     
     http://localhost:4000/aportacio/voteAportacio
     POST
