@@ -151,6 +151,8 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 	const limit: number = parseInt(req.body.limit);
 	let username: String = res.locals.user.username;
 	let sigles_ud: String = req.body.sigles_ud;
+	let ordre: Number = req.body.ordre; //0-Data 1-Vots
+	let criteri: Number = req.body.criteri; //1-Ascendent -1-Descendent
 
 	const startIndex: number = (pagina - 1) * limit;
 	const endIndex: number = pagina * limit;
@@ -184,17 +186,34 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 	}
 
 	try {
-		const aportacions = await aportacio
-			.find({ sigles_ud: sigles_ud })
-			.limit(limit)
-			.skip(startIndex)
-			.select({
-				userName: 1,
-				title: 1,
-				votes: 1,
-				createdAt: 1,
-			})
-			.lean();
+		let aportacions;
+		if (ordre == 0) {
+			aportacions = await aportacio
+				.find({ sigles_ud: sigles_ud })
+				.sort({ createdAt: criteri })
+				.limit(limit)
+				.skip(startIndex)
+				.select({
+					userName: 1,
+					title: 1,
+					votes: 1,
+					createdAt: 1,
+				})
+				.lean();
+		} else {
+			aportacions = await aportacio
+				.find({ sigles_ud: sigles_ud })
+				.sort({ votes: criteri })
+				.limit(limit)
+				.skip(startIndex)
+				.select({
+					userName: 1,
+					title: 1,
+					votes: 1,
+					createdAt: 1,
+				})
+				.lean();
+		}
 
 		let votsUsuari: any = await user
 			.find({
