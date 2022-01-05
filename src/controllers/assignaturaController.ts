@@ -57,96 +57,102 @@ const voteAssignatura: RequestHandler = async (req: Request, res: Response) => {
 		},
 		{ votesAssignatures: { $elemMatch: { assignatura: assignaturaId } } }
 	);
-	if (votUsuari.length != 0) {
-		res.status(401).send({
-			text: "Aquest usuari ja ha valorat aquesta assignatura",
-		});
-	} else {
-		try {
+	try {
+		if (votUsuari.length == 0) {
+			//Si l'usuari encara no ha votat aquella assignatura
 			await user.findOneAndUpdate(
 				{ userName: username },
 				{
 					$push: {
 						votesAssignatures: {
 							assignatura: assignaturaId,
+							votDificultat: votDificultat,
+							votProfessorat: votProfessorat,
+							votInteresant: votInteresant,
+							votFeina: votFeina,
 						},
 					},
 				}
 			);
-			const firstVote = await assignatura
-				.findOne({
-					sigles_ud: assignaturaId,
-				})
-				.select({
-					dificultat: 1,
-				});
-			if (firstVote.dificultat == 0) {
-				await assignatura.updateMany(
-					{ sigles_ud: assignaturaId },
-					{
-						$set: {
-							dificultat: votDificultat,
-							professorat: votProfessorat,
-							interesant: votInteresant,
-							feina: votFeina,
-						},
-						$inc: {
-							vots: 1,
-						},
-					}
-				);
-			} else {
-				let votsActuals = await assignatura
-					.findOne({ sigles_ud: assignaturaId })
-					.select({
-						dificultat: 1,
-						professorat: 1,
-						interesant: 1,
-						feina: 1,
+			await assignatura.updateMany(
+				{ sigles_ud: assignaturaId },
+				{
+					$inc: {
+						dificultat: votDificultat,
+						professorat: votProfessorat,
+						interesant: votInteresant,
+						feina: votFeina,
 						vots: 1,
-					});
-				let nouDificultat =
-					votsActuals.dificultat *
-						(votsActuals.vots / (votsActuals.vots + 1)) +
-					votDificultat / (votsActuals.vots + 1);
-				let nouProfessorat =
-					votsActuals.professorat *
-						(votsActuals.vots / (votsActuals.vots + 1)) +
-					votProfessorat / (votsActuals.vots + 1);
-				let nouInteresant =
-					votsActuals.interesant *
-						(votsActuals.vots / (votsActuals.vots + 1)) +
-					votInteresant / (votsActuals.vots + 1);
-				let nouFeina =
-					votsActuals.feina *
-						(votsActuals.vots / (votsActuals.vots + 1)) +
-					votFeina / (votsActuals.vots + 1);
-
-				await assignatura.updateMany(
-					{
-						sigles_ud: assignaturaId,
 					},
-					{
-						$set: {
-							dificultat: nouDificultat,
-							professorat: nouProfessorat,
-							interesant: nouInteresant,
-							feina: nouFeina,
-						},
-						$inc: {
-							vots: 1,
-						},
-					}
-				);
-			}
+				}
+			);
 			res.status(200).send({
 				text: "Valoració afegida",
 			});
-		} catch (e) {
-			res.status(500).send({
-				error: e,
+		} else {
+			let votsUsuari = await user.find(
+				{
+					userName: username,
+					votesAssignatures: {
+						$elemMatch: { assignatura: assignaturaId },
+					},
+				},
+				{
+					votesAssignatures: {
+						$elemMatch: { assignatura: assignaturaId },
+					},
+				}
+			);
+			await assignatura.updateMany(
+				{ sigles_ud: assignaturaId },
+				{
+					$inc: {
+						dificultat: -JSON.parse(JSON.stringify(votsUsuari))[0]
+							.votesAssignatures[0].votDificultat,
+						professorat: -JSON.parse(JSON.stringify(votsUsuari))[0]
+							.votesAssignatures[0].votProfessorat,
+						interesant: -JSON.parse(JSON.stringify(votsUsuari))[0]
+							.votesAssignatures[0].votInteresant,
+						feina: -JSON.parse(JSON.stringify(votsUsuari))[0]
+							.votesAssignatures[0].votFeina,
+					},
+				}
+			);
+			await assignatura.updateMany(
+				{ sigles_ud: assignaturaId },
+				{
+					$inc: {
+						dificultat: votDificultat,
+						professorat: votProfessorat,
+						interesant: votInteresant,
+						feina: votFeina,
+					},
+				}
+			);
+			await user.findOneAndUpdate(
+				{
+					userName: username,
+					votesAssignatures: {
+						$elemMatch: { assignatura: assignaturaId },
+					},
+				},
+				{
+					$set: {
+						"votesAssignatures.$.votDificultat": votDificultat,
+						"votesAssignatures.$.votProfessorat": votProfessorat,
+						"votesAssignatures.$.votInteresant": votInteresant,
+						"votesAssignatures.$.votFeina": votFeina,
+					},
+				}
+			);
+			res.status(200).send({
+				text: "Valoració Modificada",
 			});
 		}
+	} catch (e) {
+		res.status(500).send({
+			error: e,
+		});
 	}
 };
 
@@ -181,20 +187,24 @@ const getVotesAssignatura: RequestHandler = async (
 					$elemMatch: { assignatura: assignaturaId },
 				},
 			},
-			{ votes: { $elemMatch: { assignatura: assignaturaId } } }
+			{
+				votesAssignatures: {
+					$elemMatch: { assignatura: assignaturaId },
+				},
+			}
 		);
 		try {
 			votUsuari = JSON.parse(JSON.stringify(votUsuari));
+			if (votUsuari.length == 0) votUsuari = [];
+			else votUsuari = votUsuari[0].votesAssignatures[0];
 		} catch {
 			votUsuari = 0;
 		}
-		if (votUsuari.length != 0) votUsuari = 1;
-		else votUsuari = 0;
 		res.status(200).send({
-			dificultat: votsActuals.dificultat,
-			professorat: votsActuals.professorat,
-			interesant: votsActuals.interesant,
-			feina: votsActuals.feina,
+			dificultat: votsActuals.dificultat / votsActuals.vots,
+			professorat: votsActuals.professorat / votsActuals.vots,
+			interesant: votsActuals.interesant / votsActuals.vots,
+			feina: votsActuals.feina / votsActuals.vots,
 			vots: votsActuals.vots,
 			votUsuari: votUsuari,
 		});
