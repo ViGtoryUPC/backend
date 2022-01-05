@@ -27,6 +27,7 @@ const {
 	downloadAllFiles,
 	getAllAportacionsForUser,
 	deleteAllAportacionsForUser,
+	getAllAportacionsForGrau,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -82,6 +83,7 @@ router.post(
 	"/aportacio/deleteAllAportacionsForUser",
 	deleteAllAportacionsForUser
 );
+router.get("/aportacio/getAllAportacionsForGrau", getAllAportacionsForGrau);
 
 //Comentari
 router.post("/comentari/newComentari", newComentari);

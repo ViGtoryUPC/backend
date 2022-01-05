@@ -1,9 +1,11 @@
 import { RequestHandler, Request, Response } from "express";
 import aportacio from "../models/aportacio";
 import user from "../models/user";
+import grau from "../models/grau";
 import comentari from "../models/comentari";
 import fs from "fs";
 import { zip } from "zip-a-folder";
+import assignatura from "../models/assignatura";
 
 //------------------------------------
 //
@@ -26,19 +28,119 @@ const newAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let body: String = req.body.body;
 	let sigles_ud: String = req.body.sigles_ud;
 
-	let newAportacio;
+	const graus = await assignatura
+		.find({
+			sigles_ud: sigles_ud,
+		})
+		.select({
+			codi_programa: 1,
+			_id: 0,
+		});
+
+	let newAportacio: any;
 	newAportacio = new aportacio({
 		userName: username,
 		title: titol,
 		body: body,
 		sigles_ud: sigles_ud,
 	});
+	graus.forEach(function (grau: any) {
+		newAportacio.graus.push(grau);
+	});
+
 	await newAportacio.save(function (err: any, apo: any) {
 		return res.status(201).send({
 			text: "Aportació creada",
 			IdAportacio: apo.id,
 		});
 	});
+};
+
+const getAllAportacionsForGrau: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	const pagina: number = parseInt(req.body.pagina);
+	const limit: number = parseInt(req.body.limit);
+	let username: String = res.locals.user.username;
+	let codi_programa: String = req.body.codi_programa;
+
+	const startIndex: number = (pagina - 1) * limit;
+	const endIndex: number = pagina * limit;
+
+	if (
+		(await aportacio
+			.countDocuments({
+				graus: { $elemMatch: { codi_programa: codi_programa } },
+			})
+			.exec()) == 0
+	) {
+		return res.status(401).send({
+			text: "No existeixen aportacions per aquest grau.",
+		});
+	}
+	let seguent = {};
+	let anterior = {};
+
+	if (
+		endIndex <
+		(await aportacio
+			.countDocuments({
+				graus: { $elemMatch: { codi_programa: codi_programa } },
+			})
+			.exec())
+	) {
+		seguent = {
+			pagina: pagina + 1,
+			limit: limit,
+		};
+	}
+
+	if (startIndex > 0) {
+		anterior = {
+			pagina: pagina - 1,
+			limit: limit,
+		};
+	}
+	try {
+		const aportacions = await aportacio
+			.find({ graus: { $elemMatch: { codi_programa: codi_programa } } })
+			.limit(limit)
+			.skip(startIndex)
+			.select({
+				userName: 1,
+				title: 1,
+				votes: 1,
+				createdAt: 1,
+			})
+			.lean();
+
+		let votsUsuari: any = await user
+			.find({
+				userName: username,
+			})
+			.select({
+				votes: 1,
+			});
+		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
+		aportacions.forEach(function (aporta: any) {
+			votsUsuari.forEach(function (votUsuari: any) {
+				if (aporta._id == votUsuari.votat) {
+					aporta.votUsuari = votUsuari.vote;
+				}
+			});
+		});
+
+		return res.status(200).send({
+			aportacions: aportacions,
+			anterior: anterior,
+			seguent: seguent,
+		});
+	} catch (e) {
+		return res.status(500).send({
+			error: e,
+		});
+	}
 };
 
 const getAllAportacionsForAssignatura: RequestHandler = async (
@@ -587,4 +689,5 @@ export {
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
+	getAllAportacionsForGrau,
 };

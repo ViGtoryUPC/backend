@@ -22,6 +22,10 @@ const userSchema = new Schema(
 		votesAssignatures: [
 			{
 				assignatura: String,
+				votDificultat: Number,
+				votProfessorat: Number,
+				votInteresant: Number,
+				votFeina: Number,
 			},
 		],
 	},
