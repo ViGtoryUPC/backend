@@ -163,6 +163,14 @@ RUTES AMB JWT:
         body:
             assignaturaId
             
+    http://localhost:4000/aportacio/searchAportacionsForAssignatura
+    GET 
+        body:
+            busca (Text a buscar)
+            sigles_ud
+            pagina
+            limit
+            
     
     
     
