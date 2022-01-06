@@ -143,6 +143,94 @@ const getAllAportacionsForGrau: RequestHandler = async (
 	}
 };
 
+const searchAportacionsForAssignatura: RequestHandler = async (
+	req: Request,
+	res: Response
+) => {
+	const pagina: number = parseInt(req.body.pagina);
+	const limit: number = parseInt(req.body.limit);
+	let username: String = res.locals.user.username;
+	let busca: String = req.body.busca;
+	let sigles_ud: String = req.body.sigles_ud;
+
+	const startIndex: number = (pagina - 1) * limit;
+	const endIndex: number = pagina * limit;
+
+	if (
+		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec()) == 0
+	) {
+		return res.status(401).send({
+			text: "No existeixen aportacions per aquesta assignatura.",
+		});
+	}
+
+	let seguent = {};
+	let anterior = {};
+
+	if (
+		endIndex <
+		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec())
+	) {
+		seguent = {
+			pagina: pagina + 1,
+			limit: limit,
+		};
+	}
+
+	if (startIndex > 0) {
+		anterior = {
+			pagina: pagina - 1,
+			limit: limit,
+		};
+	}
+	try {
+		let aportacions;
+		aportacions = await aportacio
+			.find({ sigles_ud: sigles_ud, title: { $regex: busca } })
+			.limit(limit)
+			.skip(startIndex)
+			.select({
+				userName: 1,
+				title: 1,
+				votes: 1,
+				createdAt: 1,
+			})
+			.lean();
+
+		let votsUsuari: any = await user
+			.find({
+				userName: username,
+			})
+			.select({
+				votes: 1,
+			});
+
+		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
+		aportacions.forEach(function (aporta: any) {
+			votsUsuari.forEach(function (votUsuari: any) {
+				if (aporta._id == votUsuari.votat) {
+					aporta.votUsuari = votUsuari.vote;
+				}
+			});
+		});
+		if (aportacions.length != 0) {
+			return res.status(200).send({
+				aportacions: aportacions,
+				anterior: anterior,
+				seguent: seguent,
+			});
+		} else {
+			return res.status(400).send({
+				text: "Cap aportació coincideix amb els criteris de cerca.",
+			});
+		}
+	} catch (e) {
+		res.status(500).send({
+			error: e,
+		});
+	}
+};
+
 const getAllAportacionsForAssignatura: RequestHandler = async (
 	req: Request,
 	res: Response
@@ -709,4 +797,5 @@ export {
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
 	getAllAportacionsForGrau,
+	searchAportacionsForAssignatura,
 };
