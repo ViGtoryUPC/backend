@@ -254,9 +254,12 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 
 const modificarGrau: RequestHandler = async (req: Request, res: Response) => {
 	try {
-		await user.findOneAndUpdate(res.locals.user.username, {
-			degree: req.body.grau,
-		});
+		await user.findOneAndUpdate(
+			{ userName: res.locals.user.username },
+			{
+				degree: req.body.grau,
+			}
+		);
 		return res.status(200).send({
 			text: "Grau d'interès canviat.",
 			usuari: res.locals.user.username,
@@ -292,9 +295,12 @@ const modificarPassword: RequestHandler = async (
 			});
 		}
 		const password = await usuari.encryptPassword(req.body.newPassword);
-		await user.findOneAndUpdate(res.locals.user.username, {
-			password: password,
-		});
+		await user.findOneAndUpdate(
+			{ userName: res.locals.user.username },
+			{
+				password: password,
+			}
+		);
 		return res.status(200).send({
 			text: "Contrasenya canviada",
 			usuari: res.locals.user.username,
@@ -340,13 +346,19 @@ const afegirSegonCorreu: RequestHandler = async (
 		});
 	}
 	if (isStudentMail(email)) {
-		await user.findOneAndUpdate(res.locals.user.username, {
-			emailStudent: email,
-		});
+		await user.findOneAndUpdate(
+			{ userName: res.locals.user.username },
+			{
+				emailStudent: email,
+			}
+		);
 	} else {
-		await user.findOneAndUpdate(res.locals.user.username, {
-			email: email,
-		});
+		await user.findOneAndUpdate(
+			{ userName: res.locals.user.username },
+			{
+				email: email,
+			}
+		);
 	}
 	await sendConfirmationEmail(email, usuari, false);
 	return res.status(201).send("Email afegit, siusplau valida'l.");
@@ -365,9 +377,12 @@ const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
 	if (usuari.newEmail != null) {
 		await Token.findOneAndDelete({ userId: usuari._id });
 	}
-	await user.findOneAndUpdate(res.locals.user.username, {
-		newEmail: email,
-	});
+	await user.findOneAndUpdate(
+		{ userName: res.locals.user.username },
+		{
+			newEmail: email,
+		}
+	);
 	await sendConfirmationEmail(email, usuari, true);
 	return res.status(201).send("Email modificat correctament");
 };
