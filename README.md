@@ -103,7 +103,7 @@ RUTES AMB JWT:
       body:
         idAportacio
         body
-        idParent (buit si es un comentari pare, altrament id del comentari pare)
+        idParent (no enviar si es un comentari pare, altrament id del comentari pare)
     
     http://localhost:4000/comentari/getComentaris
     GET
