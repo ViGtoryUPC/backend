@@ -1,3 +1,4 @@
+var cors = require('cors');
 const { Router } = require("express");
 const {
 	signUp,
@@ -42,6 +43,7 @@ import upload from "./middleware/multer";
 
 const router = Router();
 //Middleware
+router.options('*', cors());
 router.use("*", headersController);
 router.use("*", validateJWT);
 
