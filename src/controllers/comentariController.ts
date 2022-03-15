@@ -138,9 +138,9 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	);
 	if (votUsuari.length == 0) {
 		//Si l'usuari encara no ha votat en aquella aportacio:
-		if (vot == 1) {
+		if (vot == 1 || vot == -1) {
 			await comentari.findByIdAndUpdate(comentariId, {
-				$inc: { votes: 1 },
+				$inc: { votes: vot },
 			});
 			await user.findOneAndUpdate(
 				{ userName: username },
@@ -156,25 +156,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 			);
 			return res.status(200).send({
 				text: "Vot registrat",
-			});
-		} else if (vot == -1) {
-			await comentari.findByIdAndUpdate(comentariId, {
-				$inc: { votes: -1 },
-			});
-			await user.findOneAndUpdate(
-				{ userName: username },
-				{
-					$push: {
-						votes: {
-							aportacio: aportacioId,
-							votat: comentariId,
-							vote: vot,
-						},
-					},
-				}
-			);
-			return res.status(200).send({
-				text: "Vot registrat",
+				vot: vot,
 			});
 		} else {
 			return res.status(401).send({
@@ -183,6 +165,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 		}
 	} else {
 		//Si l'usuari ja ha votat:
+		let votFinal: number;
 		let votUsuariAux: number = JSON.parse(JSON.stringify(votUsuari))[0]
 			.votes[0].vote;
 		if (vot == 1) {
@@ -196,6 +179,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 						$pull: { votes: { votat: comentariId } },
 					}
 				);
+				votFinal = 0;
 			} else {
 				await comentari.findByIdAndUpdate(comentariId, {
 					$inc: { votes: 2 },
@@ -209,6 +193,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 						$set: { "votes.$.vote": 1 },
 					}
 				);
+				votFinal = 1;
 			}
 		} else if (vot == -1) {
 			if (votUsuariAux == 1) {
@@ -224,6 +209,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 						$set: { "votes.$.vote": -1 },
 					}
 				);
+				votFinal = -1;
 			} else {
 				await comentari.findByIdAndUpdate(comentariId, {
 					$inc: { votes: 1 },
@@ -234,6 +220,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 						$pull: { votes: { votat: comentariId } },
 					}
 				);
+				votFinal = 0;
 			}
 		} else {
 			return res.status(401).send({
@@ -242,6 +229,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 		}
 		return res.status(200).send({
 			text: "Vot modificat",
+			vot: votFinal,
 		});
 	}
 };
