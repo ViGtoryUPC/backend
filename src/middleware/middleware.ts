@@ -19,6 +19,7 @@ const validateJWT = (req: any, res: Response, next: NextFunction) => {
 	if (
 		req.originalUrl == "/user/signIn" ||
 		req.originalUrl == "/user/signUp" ||
+		req.originalUrl == "/grau/getAllGraus" ||
 		req.originalUrl.startsWith("/user/emailVerification")
 	) {
 		next();
