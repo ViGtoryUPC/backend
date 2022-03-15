@@ -555,6 +555,7 @@ const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 					$pull: { votes: { aportacio: aportacioId } },
 				}
 			);
+			fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 			return res.status(200).send({
 				text: "Aportació borrada",
 			});
