@@ -20,9 +20,12 @@ RUTES SENSE JWT:
       Body:
         username:
         password:
-    
-    
-    
+        
+    http://localhost:4000/grau/getAllGraus
+    GET
+      Body:
+        -
+   
 ///////////////////
 RUTES AMB JWT:
   Headers:
@@ -61,11 +64,6 @@ RUTES AMB JWT:
       Body:
         email
     
-    http://localhost:4000/grau/getAllGraus
-    GET
-      Body:
-        -
-    
     http://localhost:4000/assignatura/getAssignatures
     GET
       Body:
@@ -78,10 +76,12 @@ RUTES AMB JWT:
         body
         sigles_ud (Les sigles rebudes amb el metode getAssignatures)
     
-    http://localhost:4000/aportacio/getAllAportacionsForAssignatura
+    http://localhost:4000/aportacio/getAportacions
     GET
       Body:
-        sigles_ud
+        usernameFind (si es vol buscar per un usuari en concret)
+        sigles_ud (Si es vol buscar per una asignatura en concret)
+        busca (Si es vol buscar per un titol en concret)
         pagina (pagina a mostrar de la paginacio)
         limit (nombre d'aportacions per pàgina)
         ordre (0-Data, 1-Vots)
@@ -162,22 +162,3 @@ RUTES AMB JWT:
     GET
         body:
             assignaturaId
-            
-    http://localhost:4000/aportacio/searchAportacionsForAssignatura
-    GET 
-        body:
-            busca (Text a buscar)
-            sigles_ud
-            pagina
-            limit
-            
-    
-    
-    
-        
-      
-    
-      
-      
-    
-    
