@@ -56,210 +56,34 @@ const newAportacio: RequestHandler = async (req: Request, res: Response) => {
 	});
 };
 
-const getAllAportacionsForGrau: RequestHandler = async (
-	req: Request,
-	res: Response
-) => {
+const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 	const pagina: number = parseInt(req.body.pagina);
 	const limit: number = parseInt(req.body.limit);
 	let username: String = res.locals.user.username;
-	let codi_programa: String = req.body.codi_programa;
-
-	const startIndex: number = (pagina - 1) * limit;
-	const endIndex: number = pagina * limit;
-
-	if (
-		(await aportacio
-			.countDocuments({
-				graus: { $elemMatch: { codi_programa: codi_programa } },
-			})
-			.exec()) == 0
-	) {
-		return res.status(401).send({
-			text: "No existeixen aportacions per aquest grau.",
-		});
-	}
-	let seguent = {};
-	let anterior = {};
-
-	if (
-		endIndex <
-		(await aportacio
-			.countDocuments({
-				graus: { $elemMatch: { codi_programa: codi_programa } },
-			})
-			.exec())
-	) {
-		seguent = {
-			pagina: pagina + 1,
-			limit: limit,
-		};
-	}
-
-	if (startIndex > 0) {
-		anterior = {
-			pagina: pagina - 1,
-			limit: limit,
-		};
-	}
-	try {
-		const aportacions = await aportacio
-			.find({ graus: { $elemMatch: { codi_programa: codi_programa } } })
-			.limit(limit)
-			.skip(startIndex)
-			.select({
-				userName: 1,
-				title: 1,
-				votes: 1,
-				createdAt: 1,
-			})
-			.lean();
-
-		let votsUsuari: any = await user
-			.find({
-				userName: username,
-			})
-			.select({
-				votes: 1,
-			});
-		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
-		aportacions.forEach(function (aporta: any) {
-			votsUsuari.forEach(function (votUsuari: any) {
-				if (aporta._id == votUsuari.votat) {
-					aporta.votUsuari = votUsuari.vote;
-				}
-			});
-		});
-
-		return res.status(200).send({
-			aportacions: aportacions,
-			anterior: anterior,
-			seguent: seguent,
-		});
-	} catch (e) {
-		return res.status(500).send({
-			error: e,
-		});
-	}
-};
-
-const searchAportacionsForAssignatura: RequestHandler = async (
-	req: Request,
-	res: Response
-) => {
-	const pagina: number = parseInt(req.body.pagina);
-	const limit: number = parseInt(req.body.limit);
-	let username: String = res.locals.user.username;
-	let busca: String = req.body.busca;
-	let sigles_ud: String = req.body.sigles_ud;
-
-	const startIndex: number = (pagina - 1) * limit;
-	const endIndex: number = pagina * limit;
-
-	if (
-		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec()) == 0
-	) {
-		return res.status(401).send({
-			text: "No existeixen aportacions per aquesta assignatura.",
-		});
-	}
-
-	let seguent = {};
-	let anterior = {};
-
-	if (
-		endIndex <
-		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec())
-	) {
-		seguent = {
-			pagina: pagina + 1,
-			limit: limit,
-		};
-	}
-
-	if (startIndex > 0) {
-		anterior = {
-			pagina: pagina - 1,
-			limit: limit,
-		};
-	}
-	try {
-		let aportacions;
-		aportacions = await aportacio
-			.find({ sigles_ud: sigles_ud, title: { $regex: busca } })
-			.limit(limit)
-			.skip(startIndex)
-			.select({
-				userName: 1,
-				title: 1,
-				votes: 1,
-				createdAt: 1,
-			})
-			.lean();
-
-		let votsUsuari: any = await user
-			.find({
-				userName: username,
-			})
-			.select({
-				votes: 1,
-			});
-
-		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
-		aportacions.forEach(function (aporta: any) {
-			votsUsuari.forEach(function (votUsuari: any) {
-				if (aporta._id == votUsuari.votat) {
-					aporta.votUsuari = votUsuari.vote;
-				}
-			});
-		});
-		if (aportacions.length != 0) {
-			return res.status(200).send({
-				aportacions: aportacions,
-				anterior: anterior,
-				seguent: seguent,
-			});
-		} else {
-			return res.status(400).send({
-				text: "Cap aportació coincideix amb els criteris de cerca.",
-			});
-		}
-	} catch (e) {
-		res.status(500).send({
-			error: e,
-		});
-	}
-};
-
-const getAllAportacionsForAssignatura: RequestHandler = async (
-	req: Request,
-	res: Response
-) => {
-	const pagina: number = parseInt(req.body.pagina);
-	const limit: number = parseInt(req.body.limit);
-	let username: String = res.locals.user.username;
+	let usernameFind: String = req.body.usernameFind;
+	let busca: string = req.body.busca;
 	let sigles_ud: String = req.body.sigles_ud;
 	let ordre: Number = req.body.ordre; //0-Data 1-Vots
 	let criteri: Number = req.body.criteri; //1-Ascendent -1-Descendent
 
+	let filtre: any = {};
+	if (usernameFind != undefined) filtre.userName = usernameFind;
+	if (sigles_ud != undefined) filtre.sigles_ud = sigles_ud;
+	if (busca != undefined) filtre.title = { $regex: new RegExp(busca, "i") };
+
 	const startIndex: number = (pagina - 1) * limit;
 	const endIndex: number = pagina * limit;
 
-	if (
-		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec()) == 0
-	) {
+	let numDocuments: Number = await aportacio.countDocuments(filtre).exec();
+
+	if (numDocuments == 0) {
 		return res.status(401).send({
 			text: "No existeixen aportacions per aquesta assignatura.",
 		});
 	}
-
 	let seguent = {};
 	let anterior = {};
-
-	if (
-		endIndex <
-		(await aportacio.countDocuments({ sigles_ud: sigles_ud }).exec())
-	) {
+	if (endIndex < numDocuments) {
 		seguent = {
 			pagina: pagina + 1,
 			limit: limit,
@@ -272,12 +96,11 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 			limit: limit,
 		};
 	}
-
 	try {
 		let aportacions;
 		if (ordre == 0) {
 			aportacions = await aportacio
-				.find({ sigles_ud: sigles_ud })
+				.find(filtre)
 				.sort({ createdAt: criteri })
 				.limit(limit)
 				.skip(startIndex)
@@ -285,12 +108,13 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 					userName: 1,
 					title: 1,
 					votes: 1,
+					sigles_ud: 1,
 					createdAt: 1,
 				})
 				.lean();
 		} else {
 			aportacions = await aportacio
-				.find({ sigles_ud: sigles_ud })
+				.find(filtre)
 				.sort({ votes: criteri })
 				.limit(limit)
 				.skip(startIndex)
@@ -298,11 +122,11 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 					userName: 1,
 					title: 1,
 					votes: 1,
+					sigles_ud: 1,
 					createdAt: 1,
 				})
 				.lean();
 		}
-
 		let votsUsuari: any = await user
 			.find({
 				userName: username,
@@ -318,7 +142,6 @@ const getAllAportacionsForAssignatura: RequestHandler = async (
 				}
 			});
 		});
-
 		return res.status(200).send({
 			aportacions: aportacions,
 			anterior: anterior,
@@ -671,84 +494,6 @@ const downloadAllFiles: RequestHandler = async (
 	}
 };
 
-const getAllAportacionsForUser: RequestHandler = async (
-	req: Request,
-	res: Response
-) => {
-	const pagina: number = parseInt(req.body.pagina);
-	const limit: number = parseInt(req.body.limit);
-	let username: String = res.locals.user.username;
-
-	const startIndex: number = (pagina - 1) * limit;
-	const endIndex: number = pagina * limit;
-
-	if ((await aportacio.countDocuments({ userName: username }).exec()) == 0) {
-		return res.status(401).send({
-			text: "No existeixen aportacions per aquest usuari.",
-		});
-	}
-
-	let seguent = {};
-	let anterior = {};
-
-	if (
-		endIndex <
-		(await aportacio.countDocuments({ userName: username }).exec())
-	) {
-		seguent = {
-			pagina: pagina + 1,
-			limit: limit,
-		};
-	}
-
-	if (startIndex > 0) {
-		anterior = {
-			pagina: pagina - 1,
-			limit: limit,
-		};
-	}
-
-	try {
-		const aportacions = await aportacio
-			.find({ userName: username })
-			.limit(limit)
-			.skip(startIndex)
-			.select({
-				userName: 1,
-				title: 1,
-				votes: 1,
-				createdAt: 1,
-			})
-			.lean();
-
-		let votsUsuari: any = await user
-			.find({
-				userName: username,
-			})
-			.select({
-				votes: 1,
-			});
-		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
-		aportacions.forEach(function (aporta: any) {
-			votsUsuari.forEach(function (votUsuari: any) {
-				if (aporta._id == votUsuari.votat) {
-					aporta.votUsuari = votUsuari.vote;
-				}
-			});
-		});
-
-		return res.status(200).send({
-			aportacions: aportacions,
-			anterior: anterior,
-			seguent: seguent,
-		});
-	} catch (e) {
-		return res.status(500).send({
-			error: e,
-		});
-	}
-};
-
 const deleteAllAportacionsForUser: RequestHandler = async (
 	req: Request,
 	res: Response
@@ -776,8 +521,7 @@ const deleteAllAportacionsForUser: RequestHandler = async (
 
 export {
 	newAportacio,
-	getAllAportacionsForAssignatura,
-	getAllAportacionsForUser,
+	getAportacions,
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
@@ -786,6 +530,4 @@ export {
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
-	getAllAportacionsForGrau,
-	searchAportacionsForAssignatura,
 };

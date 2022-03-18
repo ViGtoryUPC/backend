@@ -1,4 +1,4 @@
-var cors = require('cors');
+var cors = require("cors");
 const { Router } = require("express");
 const {
 	signUp,
@@ -18,7 +18,7 @@ const {
 } = require("./controllers/assignaturaController");
 const {
 	newAportacio,
-	getAllAportacionsForAssignatura,
+	getAportacions,
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
@@ -26,10 +26,7 @@ const {
 	getFileNamesAportacio,
 	downloadFile,
 	downloadAllFiles,
-	getAllAportacionsForUser,
 	deleteAllAportacionsForUser,
-	getAllAportacionsForGrau,
-	searchAportacionsForAssignatura,
 } = require("./controllers/aportacioController");
 const {
 	newComentari,
@@ -43,7 +40,7 @@ import upload from "./middleware/multer";
 
 const router = Router();
 //Middleware
-router.options('*', cors());
+router.options("*", cors());
 router.use("*", headersController);
 router.use("*", validateJWT);
 
@@ -70,10 +67,7 @@ router.get("/assignatura/getVotesAssignatura", getVotesAssignatura);
 
 //Aportacio
 router.post("/aportacio/newAportacio", newAportacio);
-router.get(
-	"/aportacio/getAllAportacionsForAssignatura",
-	getAllAportacionsForAssignatura
-);
+router.get("/aportacio/getAportacions", getAportacions);
 router.get("/aportacio/getAportacio", getAportacio);
 router.post("/aportacio/voteAportacio", voteAportacio);
 router.post("/aportacio/deleteAportacio", deleteAportacio);
@@ -81,15 +75,9 @@ router.post("/aportacio/addFile", upload.single("file"), addFile);
 router.get("/aportacio/getFileNamesAportacio", getFileNamesAportacio);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
-router.get("/aportacio/getAllAportacionsForUser", getAllAportacionsForUser);
 router.post(
 	"/aportacio/deleteAllAportacionsForUser",
 	deleteAllAportacionsForUser
-);
-router.get("/aportacio/getAllAportacionsForGrau", getAllAportacionsForGrau);
-router.get(
-	"/aportacio/searchAportacionsForAssignatura",
-	searchAportacionsForAssignatura
 );
 
 //Comentari
