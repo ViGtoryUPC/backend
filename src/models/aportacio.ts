@@ -6,7 +6,7 @@ const aportacioSchema = new Schema(
 		title: { type: String, required: true },
 		body: { type: String, required: true },
 		votes: { type: Number, required: true, default: 0 },
-		sigles_ud: { type: String, required: true }, //Tenen la funció de definir el tema de la aportació.
+		sigles_ud: { type: String, required: true },
 		graus: [
 			{
 				codi_programa: { type: Number },

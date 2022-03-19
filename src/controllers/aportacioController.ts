@@ -71,6 +71,11 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 	if (sigles_ud != undefined) filtre.sigles_ud = sigles_ud;
 	if (busca != undefined) filtre.title = { $regex: new RegExp(busca, "i") };
 
+	if (Object.keys(filtre).length == 0) {
+		filtre.graus = {
+			$elemMatch: { codi_programa: res.locals.grauInteres },
+		};
+	}
 	const startIndex: number = (pagina - 1) * limit;
 	const endIndex: number = pagina * limit;
 
@@ -78,7 +83,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 
 	if (numDocuments == 0) {
 		return res.status(401).send({
-			text: "No existeixen aportacions per aquesta assignatura.",
+			text: "No existeixen aportacions per aquest criteri de cerca.",
 		});
 	}
 	let seguent = {};
@@ -146,6 +151,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 			aportacions: aportacions,
 			anterior: anterior,
 			seguent: seguent,
+			numAportacions: numDocuments,
 		});
 	} catch (e) {
 		return res.status(500).send({

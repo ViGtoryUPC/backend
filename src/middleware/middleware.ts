@@ -49,6 +49,7 @@ const validateJWT = (req: any, res: Response, next: NextFunction) => {
 				}
 				res.locals.user = username;
 				res.locals.isStudent = usuari.emailStudentConfirmed;
+				res.locals.grauInteres = usuari.degree;
 				next();
 			}
 		);
