@@ -112,6 +112,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 				.select({
 					userName: 1,
 					title: 1,
+					body: 1,
 					votes: 1,
 					sigles_ud: 1,
 					createdAt: 1,
@@ -126,6 +127,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 				.select({
 					userName: 1,
 					title: 1,
+					body: 1,
 					votes: 1,
 					sigles_ud: 1,
 					createdAt: 1,
@@ -373,7 +375,8 @@ const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 					$pull: { votes: { aportacio: aportacioId } },
 				}
 			);
-			fs.rmSync("./public/files/" + aportacioId, { recursive: true });
+			if (fs.existsSync("./public/files/" + aportacioId))
+				fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 			return res.status(200).send({
 				text: "Aportació borrada",
 			});
@@ -408,16 +411,22 @@ const getFileNamesAportacio: RequestHandler = async (
 				text: "Aportació no vàlida",
 			});
 		}
-		const folder: string = "./public/files/" + aportacioId;
-		let fitxers: string[] = [];
-		await fs.readdir(folder, (err, files) => {
-			files.forEach((file) => {
-				fitxers.push(file);
+		if (fs.existsSync("./public/files/" + aportacioId)) {
+			const folder: string = "./public/files/" + aportacioId;
+			let fitxers: string[] = [];
+			await fs.readdir(folder, (err, files) => {
+				files.forEach((file) => {
+					fitxers.push(file);
+				});
+				return res.status(200).send({
+					files: fitxers,
+				});
 			});
-			return res.status(200).send({
-				files: fitxers,
+		} else {
+			return res.status(401).send({
+				text: "Aquesta aportació no té fitxers",
 			});
-		});
+		}
 	} catch (e) {
 		return res.status(500).send({
 			error: e,
@@ -485,7 +494,6 @@ const downloadAllFiles: RequestHandler = async (
 				text: "Aportació no vàlida",
 			});
 		}
-		console.log("a");
 		await zip(
 			"./public/files/" + aportacioId,
 			"./public/files/" + aportacioId + ".zip"

@@ -169,7 +169,7 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 		}
 		if (errors.length > 0) {
 			return res.status(403).send({
-				errors: errors,
+				error: errors,
 			});
 		} else {
 			let emailUser: String;
@@ -190,7 +190,7 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			}
 			if (errors.length > 0) {
 				return res.status(403).send({
-					errors: errors,
+					error: errors,
 				});
 			} else {
 				let newUser;
@@ -214,30 +214,32 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 				await newUser.save();
 				return res
 					.status(201)
-					.send("T'has registrat correctament, valida el teu Email");
+					.send({
+						text: "T'has registrat correctament, valida el teu Email",
+					});
 			}
 		}
 	} catch (error) {
-		console.log(error);
 		errors.push("Falta alguna cosa.");
-		res.send(errors);
+		res.send({ error: errors });
 	}
 };
 
 const signIn: RequestHandler = async (req: Request, res: Response) => {
-	const errors = [];
 	try {
 		const { username, password } = req.body;
 		const usuari = await user.findOne({ userName: username });
 		if (!usuari) {
-			return res.status(401).send("L'usuari no existeix.");
+			return res.status(401).send({ error: "L'usuari no existeix." });
 		}
 		const match = await usuari.matchPassword(password);
 		if (!match) {
-			return res.status(401).send("La contrasenya és incorrecta.");
+			return res
+				.status(401)
+				.send({ error: "La contrasenya és incorrecta." });
 		}
 		if (!usuari.emailConfirmed && !usuari.emailStudentConfirmed) {
-			return res.status(401).send("Valida el teu Email.");
+			return res.status(401).send({ error: "Valida el teu Email." });
 		}
 		const newJWT = await usuari.createNewJWT();
 		console.log(`Login:${usuari.userName}`);
@@ -247,8 +249,7 @@ const signIn: RequestHandler = async (req: Request, res: Response) => {
 			usuari: usuari.userName,
 		});
 	} catch {
-		errors.push({ text: "Falta alguna cosa." });
-		res.send(errors);
+		res.status(401).send({ error: "Falta alguna cosa." });
 	}
 };
 
@@ -265,7 +266,7 @@ const modificarGrau: RequestHandler = async (req: Request, res: Response) => {
 			usuari: res.locals.user.username,
 		});
 	} catch (error) {
-		res.send(error);
+		res.status(401).send({ error: error });
 	}
 };
 
@@ -281,7 +282,7 @@ const modificarPassword: RequestHandler = async (
 		});
 		const match = await usuari.matchPassword(req.body.password);
 		if (!match) {
-			errors.push("La contrasenya actual no coincideix");
+			errors.push("La contrasenya actual no coincideix.");
 		}
 		errorsaux = checkPasswordFormat(
 			req.body.newPassword,
@@ -290,7 +291,7 @@ const modificarPassword: RequestHandler = async (
 		errors = errors.concat(errorsaux);
 		if (errors.length > 0) {
 			return res.status(403).send({
-				errors: errors,
+				error: errors.join("\n"),
 				usuari: res.locals.user.username,
 			});
 		}
