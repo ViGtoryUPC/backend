@@ -63,8 +63,8 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 	let usernameFind: string = req.query.usernameFind as string;
 	let busca: string = req.query.busca as string;
 	let sigles_ud: string = req.query.sigles_ud as string;
-	let ordre: number = parseInt(req.query.ordre as string); //0-Data 1-Vots
-	let criteri: number = parseInt(req.query.criteri as string); //1-Ascendent -1-Descendent
+	let ordre: number = parseInt(req.query.ordre as string); //1-Ascendent -1-Descendent
+	let criteri: number = parseInt(req.query.criteri as string); //0-Data 1-Vots
 
 	let filtre: any = {};
 	if (usernameFind != undefined) filtre.userName = usernameFind;
@@ -103,10 +103,10 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 	}
 	try {
 		let aportacions;
-		if (ordre == 0) {
+		if (criteri == 0) {
 			aportacions = await aportacio
 				.find(filtre)
-				.sort({ createdAt: criteri })
+				.sort({ createdAt: ordre })
 				.limit(limit)
 				.skip(startIndex)
 				.select({
@@ -121,7 +121,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 		} else {
 			aportacions = await aportacio
 				.find(filtre)
-				.sort({ votes: criteri })
+				.sort({ votes: ordre })
 				.limit(limit)
 				.skip(startIndex)
 				.select({
