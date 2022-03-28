@@ -160,8 +160,8 @@ const getVotesAssignatura: RequestHandler = async (
 	req: Request,
 	res: Response
 ) => {
-	let username: String = res.locals.user.username;
-	let assignaturaId = req.body.assignaturaId;
+	let username: string = res.locals.user.username as string;
+	let assignaturaId: string = req.query.assignaturaId as string;
 	let searchAssignatura = await assignatura.find({
 		sigles_ud: assignaturaId,
 	});

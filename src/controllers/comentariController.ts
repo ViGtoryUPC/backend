@@ -48,8 +48,8 @@ const newComentari: RequestHandler = async (req: Request, res: Response) => {
 };
 
 const getComentaris: RequestHandler = async (req: Request, res: Response) => {
-	let idAportacio: String = req.body.idAportacio;
-	let username: String = res.locals.user.username;
+	let idAportacio: string = req.query.idAportacio as string;
+	let username: string = res.locals.user.username as string;
 	if (idAportacio.length == 24) {
 		const comentaris = await comentari
 			.find({ aportacio: idAportacio })

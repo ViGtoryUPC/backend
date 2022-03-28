@@ -57,14 +57,14 @@ const newAportacio: RequestHandler = async (req: Request, res: Response) => {
 };
 
 const getAportacions: RequestHandler = async (req: Request, res: Response) => {
-	const pagina: number = parseInt(req.body.pagina);
-	const limit: number = parseInt(req.body.limit);
-	let username: String = res.locals.user.username;
-	let usernameFind: String = req.body.usernameFind;
-	let busca: string = req.body.busca;
-	let sigles_ud: String = req.body.sigles_ud;
-	let ordre: Number = req.body.ordre; //0-Data 1-Vots
-	let criteri: Number = req.body.criteri; //1-Ascendent -1-Descendent
+	const pagina: number = parseInt(req.query.pagina as string);
+	const limit: number = parseInt(req.query.limit as string);
+	let username: string = res.locals.user.username;
+	let usernameFind: string = req.query.usernameFind as string;
+	let busca: string = req.query.busca as string;
+	let sigles_ud: string = req.query.sigles_ud as string;
+	let ordre: number = parseInt(req.query.ordre as string); //0-Data 1-Vots
+	let criteri: number = parseInt(req.query.criteri as string); //1-Ascendent -1-Descendent
 
 	let filtre: any = {};
 	if (usernameFind != undefined) filtre.userName = usernameFind;
@@ -163,8 +163,8 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 };
 
 const getAportacio: RequestHandler = async (req: Request, res: Response) => {
-	let aportacioId: String = req.body._id;
-	let username: String = res.locals.user.username;
+	let aportacioId: string = req.query._id as string;
+	let username: string = res.locals.user.username;
 	const targetAportacio = await aportacio
 		.find({ _id: aportacioId })
 		.select({
@@ -392,7 +392,7 @@ const getFileNamesAportacio: RequestHandler = async (
 	req: Request,
 	res: Response
 ) => {
-	let aportacioId: String = req.body.aportacioId;
+	let aportacioId: string = req.query.aportacioId as string;
 	try {
 		if (
 			aportacioId.length == 24 &&
@@ -435,8 +435,8 @@ const getFileNamesAportacio: RequestHandler = async (
 };
 
 const downloadFile: RequestHandler = async (req: Request, res: Response) => {
-	let aportacioId: String = req.body.aportacioId;
-	let nomFitxer: String = req.body.nomFitxer;
+	let aportacioId: string = req.query.aportacioId as string;
+	let nomFitxer: string = req.query.nomFitxer as string;
 	try {
 		if (
 			aportacioId.length == 24 &&
@@ -475,7 +475,7 @@ const downloadAllFiles: RequestHandler = async (
 	req: Request,
 	res: Response
 ) => {
-	let aportacioId: String = req.body.aportacioId;
+	let aportacioId: string = req.query.aportacioId as string;
 	try {
 		if (
 			aportacioId.length == 24 &&
