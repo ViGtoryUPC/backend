@@ -13,11 +13,9 @@ const newComentari: RequestHandler = async (req: Request, res: Response) => {
 	const usuari = await user.findOne({ userName: username });
 
 	if (!usuari.emailStudentConfirmed) {
-		return res
-			.status(401)
-			.send(
-				"Verifica un correu d'estudiant per poder afegir comentaris!"
-			);
+		return res.status(401).send({
+			error: "Verifica un correu d'estudiant per poder afegir comentaris!",
+		});
 	}
 	let idAportacio: String = req.body.idAportacio;
 	let body: String = req.body.body;
@@ -86,7 +84,7 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 		});
 	} else {
 		return res.status(401).send({
-			text: "id no vàlid.",
+			error: "id no vàlid.",
 		});
 	}
 };
@@ -103,6 +101,7 @@ const deleteComentari: RequestHandler = async (req: Request, res: Response) => {
 			{ $set: { body: "<comentari esborrat>", esborrat: true } }
 		);
 		return res.status(200).send({
+			text: "Comentari esborrat",
 			comentari: comentariBorrat,
 		});
 	} catch (e) {
@@ -119,13 +118,13 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	let vot: number = req.body.vote;
 	if (!res.locals.isStudent) {
 		return res.status(401).send({
-			text: "Has de verificar un correu d'estudiant per poder votar!",
+			error: "Has de verificar un correu d'estudiant per poder votar!",
 		});
 	}
 	const targetAportacio = await comentari.find({ _id: comentariId });
 	if (targetAportacio.length == 0) {
 		return res.status(401).send({
-			text: "No existeix aquest comentari.",
+			error: "No existeix aquest comentari.",
 		});
 	}
 
@@ -160,7 +159,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 			});
 		} else {
 			return res.status(401).send({
-				text: "Vot no vàlid",
+				error: "Vot no vàlid",
 			});
 		}
 	} else {
@@ -224,7 +223,7 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 			}
 		} else {
 			return res.status(401).send({
-				text: "Vot no vàlid",
+				error: "Vot no vàlid",
 			});
 		}
 		return res.status(200).send({

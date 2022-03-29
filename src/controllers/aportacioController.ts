@@ -18,11 +18,9 @@ const newAportacio: RequestHandler = async (req: Request, res: Response) => {
 	const usuari = await user.findOne({ userName: username });
 
 	if (!usuari.emailStudentConfirmed) {
-		return res
-			.status(401)
-			.send(
-				"Verifica un correu d'estudiant per poder afegir aportacions!"
-			);
+		return res.status(401).send({
+			error: "Verifica un correu d'estudiant per poder afegir aportacions!",
+		});
 	}
 	let titol: String = req.body.titol;
 	let body: String = req.body.body;
@@ -83,7 +81,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 
 	if (numDocuments == 0) {
 		return res.status(401).send({
-			text: "No existeixen aportacions per aquest criteri de cerca.",
+			error: "No existeixen aportacions per aquest criteri de cerca.",
 		});
 	}
 	let seguent = {};
@@ -177,7 +175,7 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 		.lean();
 	if (targetAportacio.length == 0) {
 		return res.status(401).send({
-			text: "No existeix aquesta aportació.",
+			error: "No existeix aquesta aportació.",
 		});
 	} else {
 		let votUsuari: any = await user.find(
@@ -205,7 +203,7 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let vot: number = req.body.vote;
 	if (!res.locals.isStudent) {
 		return res.status(401).send({
-			text: "Has de verificar un correu d'estudiant per poder votar!",
+			error: "Has de verificar un correu d'estudiant per poder votar!",
 		});
 	}
 	const targetAportacio = await aportacio.find({ _id: aportacioId });
@@ -247,7 +245,7 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 			});
 		} else {
 			return res.status(401).send({
-				text: "Vot no vàlid",
+				error: "Vot no vàlid",
 			});
 		}
 	} else {
@@ -311,7 +309,7 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 			}
 		} else {
 			return res.status(401).send({
-				text: "Vot no vàlid",
+				error: "Vot no vàlid",
 			});
 		}
 		return res.status(200).send({
@@ -333,16 +331,16 @@ const addFile: RequestHandler = async (req: Request, res: Response) => {
 		if (!aportacioExists) {
 			fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 			return res.status(401).send({
-				text: "Aportació no vàlida",
+				error: "Aportació no vàlida",
 			});
 		}
 	} else {
 		fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 		return res.status(401).send({
-			text: "Aportació no vàlida",
+			error: "Aportació no vàlida",
 		});
 	}
-	return res.send({
+	return res.status(200).send({
 		text: "Fitxer Afegit",
 	});
 };
@@ -361,7 +359,7 @@ const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 		});
 		if (borrat == null) {
 			return res.status(401).send({
-				text: "Aportació no vàlida",
+				error: "Aportació no vàlida",
 			});
 		} else {
 			await comentari.deleteMany({
@@ -403,12 +401,12 @@ const getFileNamesAportacio: RequestHandler = async (
 			});
 			if (!aportacioExists) {
 				return res.status(401).send({
-					text: "Aportació no vàlida",
+					error: "Aportació no vàlida",
 				});
 			}
 		} else {
 			return res.status(401).send({
-				text: "Aportació no vàlida",
+				error: "Aportació no vàlida",
 			});
 		}
 		if (fs.existsSync("./public/files/" + aportacioId)) {
@@ -424,7 +422,7 @@ const getFileNamesAportacio: RequestHandler = async (
 			});
 		} else {
 			return res.status(401).send({
-				text: "Aquesta aportació no té fitxers",
+				error: "Aquesta aportació no té fitxers",
 			});
 		}
 	} catch (e) {
@@ -447,12 +445,12 @@ const downloadFile: RequestHandler = async (req: Request, res: Response) => {
 			});
 			if (!aportacioExists) {
 				return res.status(401).send({
-					text: "Aportació no vàlida",
+					error: "Aportació no vàlida",
 				});
 			}
 		} else {
 			return res.status(401).send({
-				text: "Aportació no vàlida",
+				error: "Aportació no vàlida",
 			});
 		}
 		if (fs.existsSync("./public/files/" + aportacioId + "/" + nomFitxer)) {
@@ -486,12 +484,12 @@ const downloadAllFiles: RequestHandler = async (
 			});
 			if (!aportacioExists) {
 				return res.status(401).send({
-					text: "Aportació no vàlida",
+					error: "Aportació no vàlida",
 				});
 			}
 		} else {
 			return res.status(401).send({
-				text: "Aportació no vàlida",
+				error: "Aportació no vàlida",
 			});
 		}
 		await zip(
@@ -523,7 +521,7 @@ const deleteAllAportacionsForUser: RequestHandler = async (
 			});
 		} else {
 			return res.status(401).send({
-				text: "L'usuari no té cap aportació.",
+				error: "L'usuari no té cap aportació.",
 			});
 		}
 	} catch (e) {

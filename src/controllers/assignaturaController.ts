@@ -167,7 +167,7 @@ const getVotesAssignatura: RequestHandler = async (
 	});
 	if (searchAssignatura.length == 0) {
 		return res.status(401).send({
-			text: "No existeix aquesta aportació.",
+			error: "No existeix aquesta aportació.",
 		});
 	}
 	try {

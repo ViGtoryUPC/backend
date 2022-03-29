@@ -114,13 +114,13 @@ async function sendConfirmationEmail(
 const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 	try {
 		const usuari = await user.findOne({ _id: req.params.id });
-		if (!usuari) return res.status(400).send("Link no vàlid");
+		if (!usuari) return res.status(400).send({ error: "Link no vàlid" });
 
 		const token = await Token.findOne({
 			userId: usuari._id,
 			token: req.params.token,
 		});
-		if (!token) return res.status(400).send("Link no vàlid");
+		if (!token) return res.status(400).send({ error: "Link no vàlid" });
 
 		if (req.params.student === "0") {
 			if (req.params.modified === "0") {
@@ -142,9 +142,9 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 			$unset: { newEmail: "" },
 		});
 
-		res.send("Email Verificat, pots tancar aquesta pestanya.");
+		res.status(200).send("Email Verificat, pots tancar aquesta pestanya.");
 	} catch (e) {
-		res.send(e);
+		res.status(500).send({ error: e });
 	}
 };
 
@@ -168,7 +168,7 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 			errors.push("El email no és vàlid.");
 		}
 		if (errors.length > 0) {
-			return res.status(403).send({
+			return res.status(401).send({
 				error: errors,
 			});
 		} else {
@@ -212,16 +212,14 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 				await sendConfirmationEmail(email, newUser, false);
 				newUser.password = await newUser.encryptPassword(password);
 				await newUser.save();
-				return res
-					.status(201)
-					.send({
-						text: "T'has registrat correctament, valida el teu Email",
-					});
+				return res.status(201).send({
+					text: "T'has registrat correctament, valida el teu Email",
+				});
 			}
 		}
 	} catch (error) {
 		errors.push("Falta alguna cosa.");
-		res.send({ error: errors });
+		res.status(401).send({ error: errors.join("\n") });
 	}
 };
 
@@ -290,7 +288,7 @@ const modificarPassword: RequestHandler = async (
 		);
 		errors = errors.concat(errorsaux);
 		if (errors.length > 0) {
-			return res.status(403).send({
+			return res.status(401).send({
 				error: errors.join("\n"),
 				usuari: res.locals.user.username,
 			});
@@ -307,7 +305,7 @@ const modificarPassword: RequestHandler = async (
 			usuari: res.locals.user.username,
 		});
 	} catch (error) {
-		res.send(error);
+		res.send({ error: error });
 	}
 };
 
@@ -334,16 +332,16 @@ const afegirSegonCorreu: RequestHandler = async (
 	});
 	let email: string = req.body.email;
 	if (!validateEmail(email)) {
-		return res.status(403).send({
-			errors: "L'email no es vàlid.",
+		return res.status(401).send({
+			error: "L'email no es vàlid.",
 		});
 	}
 	if (
 		(isStudentMail(email) && usuari.emailStudent != null) ||
 		(!isStudentMail(email) && usuari.email != null)
 	) {
-		return res.status(403).send({
-			errors: "L'usuari ja té un email d'aquest tipus.",
+		return res.status(401).send({
+			error: "L'usuari ja té un email d'aquest tipus.",
 		});
 	}
 	if (isStudentMail(email)) {
@@ -371,8 +369,8 @@ const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
 	});
 	let email: string = req.body.email;
 	if (!validateEmail(email)) {
-		return res.status(403).send({
-			errors: "L'email no és vàlid.",
+		return res.status(401).send({
+			error: "L'email no és vàlid.",
 		});
 	}
 	if (usuari.newEmail != null) {
@@ -385,7 +383,7 @@ const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
 		}
 	);
 	await sendConfirmationEmail(email, usuari, true);
-	return res.status(201).send("Email modificat correctament");
+	return res.status(201).send({ text: "Email modificat correctament" });
 };
 
 export {
