@@ -21,7 +21,7 @@ const getAssignatures: RequestHandler = async (req: Request, res: Response) => {
 		});
 	if (assignatures.length == 0) {
 		return res.status(401).send({
-			text: "No existeix aquest grau.",
+			error: "No existeix aquest grau.",
 		});
 	} else {
 		return res.status(200).send({
@@ -38,8 +38,8 @@ const voteAssignatura: RequestHandler = async (req: Request, res: Response) => {
 	let votInteresant = req.body.votInteresant;
 	let votFeina = req.body.votFeina;
 	if (!res.locals.isStudent) {
-		res.status(401).send({
-			text: "Verifica un correu d'estudiant per a poder valorar assignatures.",
+		return res.status(401).send({
+			error: "Verifica un correu d'estudiant per a poder valorar assignatures.",
 		});
 	}
 	let searchAssignatura = await assignatura.find({
@@ -47,7 +47,7 @@ const voteAssignatura: RequestHandler = async (req: Request, res: Response) => {
 	});
 	if (searchAssignatura.length == 0) {
 		return res.status(401).send({
-			text: "No existeix aquesta aportació.",
+			error: "No existeix aquesta assignatura.",
 		});
 	}
 	let votUsuari = await user.find(

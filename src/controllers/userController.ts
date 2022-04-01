@@ -360,7 +360,7 @@ const afegirSegonCorreu: RequestHandler = async (
 		);
 	}
 	await sendConfirmationEmail(email, usuari, false);
-	return res.status(201).send("Email afegit, siusplau valida'l.");
+	return res.status(201).send({ text: "Email afegit, siusplau valida'l." });
 };
 
 const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
@@ -383,7 +383,9 @@ const modificarCorreu: RequestHandler = async (req: Request, res: Response) => {
 		}
 	);
 	await sendConfirmationEmail(email, usuari, true);
-	return res.status(201).send({ text: "Email modificat correctament" });
+	return res
+		.status(201)
+		.send({ text: "Email modificat, siusplau valida'l." });
 };
 
 export {

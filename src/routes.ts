@@ -23,7 +23,6 @@ const {
 	voteAportacio,
 	deleteAportacio,
 	addFile,
-	getFileNamesAportacio,
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
@@ -51,11 +50,11 @@ router.get(
 	"/user/emailVerification/:id/:token/:student/:modified",
 	emailValidation
 );
-router.post("/user/modificarGrau", modificarGrau);
-router.post("/user/modificarContrasenya", modificarPassword);
+router.put("/user/modificarGrau", modificarGrau);
+router.put("/user/modificarContrasenya", modificarPassword);
 router.get("/user/getInfoUsuari", getInfoUsuari);
 router.post("/user/afegirSegonCorreu", afegirSegonCorreu);
-router.post("/user/modificarCorreu", modificarCorreu);
+router.put("/user/modificarCorreu", modificarCorreu);
 
 //Grau
 router.get("/grau/getAllGraus", getAllGraus);
@@ -69,13 +68,12 @@ router.get("/assignatura/getVotesAssignatura", getVotesAssignatura);
 router.post("/aportacio/newAportacio", newAportacio);
 router.get("/aportacio/getAportacions", getAportacions);
 router.get("/aportacio/getAportacio", getAportacio);
-router.post("/aportacio/voteAportacio", voteAportacio);
-router.post("/aportacio/deleteAportacio", deleteAportacio);
+router.put("/aportacio/voteAportacio", voteAportacio);
+router.delete("/aportacio/deleteAportacio", deleteAportacio);
 router.post("/aportacio/addFile", upload.single("file"), addFile);
-router.get("/aportacio/getFileNamesAportacio", getFileNamesAportacio);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
-router.post(
+router.delete(
 	"/aportacio/deleteAllAportacionsForUser",
 	deleteAllAportacionsForUser
 );
@@ -84,6 +82,6 @@ router.post(
 router.post("/comentari/newComentari", newComentari);
 router.get("/comentari/getComentaris", getComentaris);
 router.post("/comentari/voteComentari", voteComentari);
-router.post("/comentari/deleteComentari", deleteComentari);
+router.delete("/comentari/deleteComentari", deleteComentari);
 
 export default router;

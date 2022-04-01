@@ -1,6 +1,7 @@
 import { RequestHandler, Request, Response } from "express";
 import comentari from "../models/comentari";
 import user from "../models/user";
+import aportacio from "../models/aportacio";
 
 //------------------------------------
 //
@@ -20,7 +21,16 @@ const newComentari: RequestHandler = async (req: Request, res: Response) => {
 	let idAportacio: String = req.body.idAportacio;
 	let body: String = req.body.body;
 	let idParent: String = req.body.idParent;
-
+	if (idAportacio.length == 24 && idAportacio.match(/^[0-9a-fA-F]{24}$/)) {
+		const aportacioExists = await aportacio.findOne({
+			_id: idAportacio,
+		});
+		if (!aportacioExists) {
+			return res.status(401).send({
+				error: "Aportació no vàlida",
+			});
+		}
+	}
 	let newComentari;
 
 	if (idParent == null) {
@@ -37,6 +47,9 @@ const newComentari: RequestHandler = async (req: Request, res: Response) => {
 			parent: idParent,
 		});
 	}
+	await aportacio.findByIdAndUpdate(idAportacio, {
+		$inc: { comentaris: 1 },
+	});
 	await newComentari.save(function (err: any, com: any) {
 		return res.status(201).send({
 			text: "Comentari creat",
@@ -84,7 +97,7 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 		});
 	} else {
 		return res.status(401).send({
-			error: "id no vàlid.",
+			error: "Aportació no vàlida.",
 		});
 	}
 };
@@ -121,8 +134,8 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 			error: "Has de verificar un correu d'estudiant per poder votar!",
 		});
 	}
-	const targetAportacio = await comentari.find({ _id: comentariId });
-	if (targetAportacio.length == 0) {
+	const targetComentari = await comentari.find({ _id: comentariId });
+	if (targetComentari.length == 0) {
 		return res.status(401).send({
 			error: "No existeix aquest comentari.",
 		});

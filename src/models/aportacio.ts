@@ -4,8 +4,9 @@ const aportacioSchema = new Schema(
 	{
 		userName: { type: String, required: true },
 		title: { type: String, required: true },
-		body: { type: String, required: true },
+		body: { type: String },
 		votes: { type: Number, required: true, default: 0 },
+		comentaris: { type: Number, required: true, default: 0 },
 		sigles_ud: { type: String, required: true },
 		graus: [
 			{

@@ -80,8 +80,8 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 	let numDocuments: Number = await aportacio.countDocuments(filtre).exec();
 
 	if (numDocuments == 0) {
-		return res.status(401).send({
-			error: "No existeixen aportacions per aquest criteri de cerca.",
+		return res.status(200).send({
+			text: "No existeixen aportacions per aquest criteri de cerca.",
 		});
 	}
 	let seguent = {};
@@ -112,6 +112,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 					title: 1,
 					body: 1,
 					votes: 1,
+					comentaris: 1,
 					sigles_ud: 1,
 					createdAt: 1,
 				})
@@ -127,6 +128,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 					title: 1,
 					body: 1,
 					votes: 1,
+					comentaris: 1,
 					sigles_ud: 1,
 					createdAt: 1,
 				})
@@ -140,7 +142,18 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 				votes: 1,
 			});
 		votsUsuari = JSON.parse(JSON.stringify(votsUsuari))[0].votes;
-		aportacions.forEach(function (aporta: any) {
+		aportacions.forEach(async function (aporta: any) {
+			if (fs.existsSync("./public/files/" + aporta._id)) {
+				const folder: string = "./public/files/" + aporta._id;
+				let fitxers: string[] = [];
+				let folderFiles = fs.readdirSync(folder, {
+					withFileTypes: true,
+				});
+				folderFiles.forEach((file) => {
+					fitxers.push(file.name);
+				});
+				aporta.fitxers = fitxers;
+			}
 			votsUsuari.forEach(function (votUsuari: any) {
 				if (aporta._id == votUsuari.votat) {
 					aporta.votUsuari = votUsuari.vote;
@@ -163,6 +176,11 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let aportacioId: string = req.query._id as string;
 	let username: string = res.locals.user.username;
+	if (aportacioId.length != 24 && !aportacioId.match(/^[0-9a-fA-F]{24}$/)) {
+		return res.status(401).send({
+			error: "No existeix aquesta aportació.",
+		});
+	}
 	const targetAportacio = await aportacio
 		.find({ _id: aportacioId })
 		.select({
@@ -191,6 +209,17 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 			votUsuari = 0;
 		}
 		targetAportacio[0].votacioUser = votUsuari;
+		if (fs.existsSync("./public/files/" + aportacioId)) {
+			const folder: string = "./public/files/" + aportacioId;
+			let fitxers: string[] = [];
+			let folderFiles = fs.readdirSync(folder, {
+				withFileTypes: true,
+			});
+			folderFiles.forEach((file) => {
+				fitxers.push(file.name);
+			});
+			targetAportacio[0].fitxers = fitxers;
+		}
 		return res.status(200).send({
 			aportacio: targetAportacio,
 		});
@@ -386,52 +415,6 @@ const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
-const getFileNamesAportacio: RequestHandler = async (
-	req: Request,
-	res: Response
-) => {
-	let aportacioId: string = req.query.aportacioId as string;
-	try {
-		if (
-			aportacioId.length == 24 &&
-			aportacioId.match(/^[0-9a-fA-F]{24}$/)
-		) {
-			const aportacioExists = await aportacio.findOne({
-				_id: aportacioId,
-			});
-			if (!aportacioExists) {
-				return res.status(401).send({
-					error: "Aportació no vàlida",
-				});
-			}
-		} else {
-			return res.status(401).send({
-				error: "Aportació no vàlida",
-			});
-		}
-		if (fs.existsSync("./public/files/" + aportacioId)) {
-			const folder: string = "./public/files/" + aportacioId;
-			let fitxers: string[] = [];
-			await fs.readdir(folder, (err, files) => {
-				files.forEach((file) => {
-					fitxers.push(file);
-				});
-				return res.status(200).send({
-					files: fitxers,
-				});
-			});
-		} else {
-			return res.status(401).send({
-				error: "Aquesta aportació no té fitxers",
-			});
-		}
-	} catch (e) {
-		return res.status(500).send({
-			error: e,
-		});
-	}
-};
-
 const downloadFile: RequestHandler = async (req: Request, res: Response) => {
 	let aportacioId: string = req.query.aportacioId as string;
 	let nomFitxer: string = req.query.nomFitxer as string;
@@ -538,7 +521,6 @@ export {
 	voteAportacio,
 	deleteAportacio,
 	addFile,
-	getFileNamesAportacio,
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
