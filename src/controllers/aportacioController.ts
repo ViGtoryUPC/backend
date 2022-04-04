@@ -188,6 +188,8 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 			title: 1,
 			body: 1,
 			votes: 1,
+			comentaris: 1,
+			sigles_ud: 1,
 			createdAt: 1,
 		})
 		.lean();
@@ -208,7 +210,7 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 		} catch {
 			votUsuari = 0;
 		}
-		targetAportacio[0].votacioUser = votUsuari;
+		targetAportacio[0].votUsuari = votUsuari;
 		if (fs.existsSync("./public/files/" + aportacioId)) {
 			const folder: string = "./public/files/" + aportacioId;
 			let fitxers: string[] = [];
