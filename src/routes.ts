@@ -61,7 +61,7 @@ router.get("/grau/getAllGraus", getAllGraus);
 
 //Assignatura
 router.get("/assignatura/getAssignatures", getAssignatures);
-router.post("/assignatura/voteAssignatura", voteAssignatura);
+router.put("/assignatura/voteAssignatura", voteAssignatura);
 router.get("/assignatura/getVotesAssignatura", getVotesAssignatura);
 
 //Aportacio
@@ -81,7 +81,7 @@ router.delete(
 //Comentari
 router.post("/comentari/newComentari", newComentari);
 router.get("/comentari/getComentaris", getComentaris);
-router.post("/comentari/voteComentari", voteComentari);
+router.put("/comentari/voteComentari", voteComentari);
 router.delete("/comentari/deleteComentari", deleteComentari);
 
 export default router;
