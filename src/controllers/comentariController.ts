@@ -71,6 +71,7 @@ const getComentaris: RequestHandler = async (req: Request, res: Response) => {
 				body: 1,
 				esborrat: 1,
 				parent: 1,
+				editat: 1,
 				votes: 1,
 				createdAt: 1,
 			})
@@ -268,6 +269,7 @@ const editComentari: RequestHandler = async (req: Request, res: Response) => {
 				},
 				{
 					body: newBody,
+					editat: true,
 				}
 			);
 			return res.status(200).send({

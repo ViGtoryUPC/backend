@@ -8,6 +8,7 @@ const aportacioSchema = new Schema(
 		votes: { type: Number, required: true, default: 0 },
 		comentaris: { type: Number, required: true, default: 0 },
 		sigles_ud: { type: String, required: true },
+		editat: { type: Boolean, required: true, default: false },
 		graus: [
 			{
 				codi_programa: { type: Number },

@@ -112,6 +112,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 					title: 1,
 					body: 1,
 					votes: 1,
+					editat: 1,
 					comentaris: 1,
 					sigles_ud: 1,
 					createdAt: 1,
@@ -128,6 +129,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 					title: 1,
 					body: 1,
 					votes: 1,
+					editat: 1,
 					comentaris: 1,
 					sigles_ud: 1,
 					createdAt: 1,
@@ -188,6 +190,7 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 			title: 1,
 			body: 1,
 			votes: 1,
+			editat: 1,
 			comentaris: 1,
 			sigles_ud: 1,
 			createdAt: 1,
@@ -398,6 +401,7 @@ const editAportacio: RequestHandler = async (req: Request, res: Response) => {
 				},
 				{
 					body: newBody,
+					editat: true,
 				}
 			);
 			return res.status(200).send({
