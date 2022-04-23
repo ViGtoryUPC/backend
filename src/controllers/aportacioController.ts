@@ -376,6 +376,46 @@ const addFile: RequestHandler = async (req: Request, res: Response) => {
 	});
 };
 
+const editAportacio: RequestHandler = async (req: Request, res: Response) => {
+	let aportacioId: string = req.body.aportacioId;
+	let username: string = res.locals.user.username;
+	let newBody: string = req.body.newBody;
+
+	if (aportacioId.length == 24 && aportacioId.match(/^[0-9a-fA-F]{24}$/)) {
+		const targetAportacio = await aportacio.findOne({
+			userName: username,
+			_id: aportacioId,
+		});
+		if (!targetAportacio) {
+			return res.status(401).send({
+				error: "Aportació no vàlida",
+			});
+		}
+		try {
+			await aportacio.findOneAndUpdate(
+				{
+					_id: aportacioId,
+				},
+				{
+					body: newBody,
+				}
+			);
+			return res.status(200).send({
+				text: "Aportació modificada",
+				newBody: newBody,
+			});
+		} catch (e) {
+			return res.status(500).send({
+				error: e,
+			});
+		}
+	} else {
+		return res.status(401).send({
+			error: "Aportació no vàlida",
+		});
+	}
+};
+
 const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let aportacioId: String = req.body.aportacioId;
@@ -526,4 +566,5 @@ export {
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
+	editAportacio,
 };

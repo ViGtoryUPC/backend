@@ -23,6 +23,7 @@ const {
 	voteAportacio,
 	deleteAportacio,
 	addFile,
+	editAportacio,
 	downloadFile,
 	downloadAllFiles,
 	deleteAllAportacionsForUser,
@@ -32,6 +33,7 @@ const {
 	getComentaris,
 	voteComentari,
 	deleteComentari,
+	editComentari,
 } = require("./controllers/comentariController");
 
 const { headersController, validateJWT } = require("./middleware/middleware");
@@ -70,6 +72,7 @@ router.get("/aportacio/getAportacions", getAportacions);
 router.get("/aportacio/getAportacio", getAportacio);
 router.put("/aportacio/voteAportacio", voteAportacio);
 router.delete("/aportacio/deleteAportacio", deleteAportacio);
+router.put("/aportacio/editAportacio", editAportacio);
 router.post("/aportacio/addFile", upload.single("file"), addFile);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
@@ -83,5 +86,6 @@ router.post("/comentari/newComentari", newComentari);
 router.get("/comentari/getComentaris", getComentaris);
 router.put("/comentari/voteComentari", voteComentari);
 router.delete("/comentari/deleteComentari", deleteComentari);
+router.put("/comentari/editComentari", editComentari);
 
 export default router;

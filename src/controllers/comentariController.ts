@@ -246,4 +246,50 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
-export { newComentari, getComentaris, voteComentari, deleteComentari };
+const editComentari: RequestHandler = async (req: Request, res: Response) => {
+	let comentariId: string = req.body.comentariId;
+	let username: string = res.locals.user.username;
+	let newBody: string = req.body.newBody;
+
+	if (comentariId.length == 24 && comentariId.match(/^[0-9a-fA-F]{24}$/)) {
+		const targetComentari = await comentari.findOne({
+			userName: username,
+			_id: comentariId,
+		});
+		if (!targetComentari) {
+			return res.status(401).send({
+				error: "Comentari no vàlid",
+			});
+		}
+		try {
+			await comentari.findOneAndUpdate(
+				{
+					_id: comentariId,
+				},
+				{
+					body: newBody,
+				}
+			);
+			return res.status(200).send({
+				text: "Comentari modificat",
+				newBody: newBody,
+			});
+		} catch (e) {
+			return res.status(500).send({
+				error: e,
+			});
+		}
+	} else {
+		return res.status(401).send({
+			error: "Comentari no vàlid",
+		});
+	}
+};
+
+export {
+	newComentari,
+	getComentaris,
+	voteComentari,
+	deleteComentari,
+	editComentari,
+};
