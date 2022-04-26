@@ -420,6 +420,53 @@ const editAportacio: RequestHandler = async (req: Request, res: Response) => {
 	}
 };
 
+const deleteFile: RequestHandler = async (req: Request, res: Response) => {
+	let username: String = res.locals.user.username;
+	let aportacioId: String = req.body.aportacioId;
+	let nomFitxer: String = req.body.nomFitxer;
+
+	if (aportacioId.length == 24 && aportacioId.match(/^[0-9a-fA-F]{24}$/)) {
+		const targetAportacio = await aportacio.findOne({
+			userName: username,
+			_id: aportacioId,
+		});
+		if (!targetAportacio) {
+			return res.status(401).send({
+				error: "Aportació no vàlida",
+			});
+		}
+		try {
+			if (
+				fs.existsSync("./public/files/" + aportacioId + "/" + nomFitxer)
+			) {
+				fs.rmSync("./public/files/" + aportacioId + "/" + nomFitxer);
+				if (
+					fs.readdirSync("./public/files/" + aportacioId).length == 0
+				) {
+					fs.rmSync("./public/files/" + aportacioId, {
+						recursive: true,
+					});
+				}
+			} else {
+				return res.status(401).send({
+					error: "Fitxer no vàlid",
+				});
+			}
+			return res.status(200).send({
+				text: "Fitxer Esborrat",
+			});
+		} catch (e) {
+			return res.status(500).send({
+				error: e,
+			});
+		}
+	} else {
+		return res.status(401).send({
+			error: "Aportació no vàlida",
+		});
+	}
+};
+
 const deleteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let aportacioId: String = req.body.aportacioId;
@@ -566,6 +613,7 @@ export {
 	getAportacio,
 	voteAportacio,
 	deleteAportacio,
+	deleteFile,
 	addFile,
 	downloadFile,
 	downloadAllFiles,

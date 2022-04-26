@@ -23,6 +23,7 @@ const {
 	voteAportacio,
 	deleteAportacio,
 	addFile,
+	deleteFile,
 	editAportacio,
 	downloadFile,
 	downloadAllFiles,
@@ -73,6 +74,7 @@ router.get("/aportacio/getAportacio", getAportacio);
 router.put("/aportacio/voteAportacio", voteAportacio);
 router.delete("/aportacio/deleteAportacio", deleteAportacio);
 router.put("/aportacio/editAportacio", editAportacio);
+router.delete("/aportacio/deleteFile", deleteFile);
 router.post("/aportacio/addFile", upload.single("file"), addFile);
 router.get("/aportacio/downloadFile", downloadFile);
 router.get("/aportacio/downloadAllFiles", downloadAllFiles);
