@@ -36,6 +36,7 @@ const {
 	deleteComentari,
 	editComentari,
 } = require("./controllers/comentariController");
+const { getHorarisAssignatures } = require("./controllers/horariController");
 
 const { headersController, validateJWT } = require("./middleware/middleware");
 import upload from "./middleware/multer";
@@ -89,5 +90,8 @@ router.get("/comentari/getComentaris", getComentaris);
 router.put("/comentari/voteComentari", voteComentari);
 router.delete("/comentari/deleteComentari", deleteComentari);
 router.put("/comentari/editComentari", editComentari);
+
+//Horari
+router.get("/horari/getHorarisAssignatures", getHorarisAssignatures);
 
 export default router;
