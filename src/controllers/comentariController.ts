@@ -130,11 +130,6 @@ const voteComentari: RequestHandler = async (req: Request, res: Response) => {
 	let comentariId: String = req.body.comentariId;
 	let aportacioId: String = req.body.aportacioId;
 	let vot: number = req.body.vote;
-	if (!res.locals.isStudent) {
-		return res.status(401).send({
-			error: "Has de verificar un correu d'estudiant per poder votar!",
-		});
-	}
 	const targetComentari = await comentari.find({ _id: comentariId });
 	if (targetComentari.length == 0) {
 		return res.status(401).send({

@@ -235,11 +235,6 @@ const voteAportacio: RequestHandler = async (req: Request, res: Response) => {
 	let username: String = res.locals.user.username;
 	let aportacioId: String = req.body.aportacioId;
 	let vot: number = req.body.vote;
-	if (!res.locals.isStudent) {
-		return res.status(401).send({
-			error: "Has de verificar un correu d'estudiant per poder votar!",
-		});
-	}
 	const targetAportacio = await aportacio.find({ _id: aportacioId });
 	if (targetAportacio.length == 0) {
 		return res.status(401).send({
