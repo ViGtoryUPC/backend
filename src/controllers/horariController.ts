@@ -50,6 +50,7 @@ const getHorarisAssignatures: RequestHandler = async (
 			sigles_ud: 1,
 			nom: 1,
 			grau: 1,
+			codaul: 1,
 			_id: 0,
 		});
 	} else {

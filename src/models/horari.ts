@@ -16,6 +16,7 @@ const horariSchema = new Schema(
 		sigles_ud: { type: String, required: true },
 		nom: { type: String, required: true },
 		grau: { type: String, required: true },
+		codaul: { type: String, required: true },
 	},
 	{
 		timestamps: true,
