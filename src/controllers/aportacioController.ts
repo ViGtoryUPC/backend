@@ -6,6 +6,8 @@ import comentari from "../models/comentari";
 import fs from "fs";
 import { zip } from "zip-a-folder";
 import assignatura from "../models/assignatura";
+import mime from "mime-types";
+import { listeners } from "process";
 
 //------------------------------------
 //
@@ -55,8 +57,8 @@ const newAportacio: RequestHandler = async (req: Request, res: Response) => {
 };
 
 const getAportacions: RequestHandler = async (req: Request, res: Response) => {
-	const pagina: number = parseInt(req.query.pagina as string);
-	const limit: number = parseInt(req.query.limit as string);
+	let pagina: number = parseInt(req.query.pagina as string);
+	let limit: number = parseInt(req.query.limit as string);
 	let username: string = res.locals.user.username;
 	let usernameFind: string = req.query.usernameFind as string;
 	let busca: string = req.query.busca as string;
@@ -74,10 +76,14 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 			$elemMatch: { codi_programa: res.locals.grauInteres },
 		};
 	}
+
+	let numDocuments: number = await aportacio.countDocuments(filtre).exec();
+
+	if (Math.ceil(numDocuments / limit) < pagina)
+		pagina = Math.ceil(numDocuments / limit);
+
 	const startIndex: number = (pagina - 1) * limit;
 	const endIndex: number = pagina * limit;
-
-	let numDocuments: Number = await aportacio.countDocuments(filtre).exec();
 
 	if (numDocuments == 0) {
 		return res.status(200).send({
@@ -147,12 +153,20 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 		aportacions.forEach(async function (aporta: any) {
 			if (fs.existsSync("./public/files/" + aporta._id)) {
 				const folder: string = "./public/files/" + aporta._id;
-				let fitxers: string[] = [];
+				let fitxers: any[] = [];
 				let folderFiles = fs.readdirSync(folder, {
 					withFileTypes: true,
 				});
 				folderFiles.forEach((file) => {
-					fitxers.push(file.name);
+					fitxers.push([
+						file.name,
+						fs.statSync(
+							"./public/files/" + aporta._id + "/" + file.name
+						).size,
+						mime.lookup(
+							"./public/files/" + aporta._id + "/" + file.name
+						),
+					]);
 				});
 				aporta.fitxers = fitxers;
 			}
@@ -165,6 +179,7 @@ const getAportacions: RequestHandler = async (req: Request, res: Response) => {
 		return res.status(200).send({
 			aportacions: aportacions,
 			anterior: anterior,
+			actual: pagina,
 			seguent: seguent,
 			numAportacions: numDocuments,
 		});
@@ -216,12 +231,20 @@ const getAportacio: RequestHandler = async (req: Request, res: Response) => {
 		targetAportacio[0].votUsuari = votUsuari;
 		if (fs.existsSync("./public/files/" + aportacioId)) {
 			const folder: string = "./public/files/" + aportacioId;
-			let fitxers: string[] = [];
+			let fitxers: any[] = [];
 			let folderFiles = fs.readdirSync(folder, {
 				withFileTypes: true,
 			});
 			folderFiles.forEach((file) => {
-				fitxers.push(file.name);
+				fitxers.push([
+					file.name,
+					fs.statSync(
+						"./public/files/" + aportacioId + "/" + file.name
+					).size,
+					mime.lookup(
+						"./public/files/" + aportacioId + "/" + file.name
+					),
+				]);
 			});
 			targetAportacio[0].fitxers = fitxers;
 		}
