@@ -385,21 +385,21 @@ const addFile: RequestHandler = async (req: Request, res: Response) => {
 			});
 		}
 		let dir = "./public/files/" + aportacioId;
-		fs.readdir("./public/files/" + aportacioId, (err, files) => {
-			if (files.length > 10) {
-				let sortedFiles = fs
-					.readdirSync(dir)
-					.filter((file) =>
-						fs.lstatSync(path.join(dir, file)).isFile()
-					)
-					.map((file) => ({
-						file,
-						mtime: fs.lstatSync(path.join(dir, file)).mtime,
-					}))
-					.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
-				fs.unlinkSync(dir + "/" + sortedFiles[0].file);
-			}
-		});
+		let files = fs.readdirSync("./public/files/" + aportacioId);
+		if (files.length > 10) {
+			let sortedFiles = fs
+				.readdirSync(dir)
+				.filter((file) => fs.lstatSync(path.join(dir, file)).isFile())
+				.map((file) => ({
+					file,
+					mtime: fs.lstatSync(path.join(dir, file)).mtime,
+				}))
+				.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+			fs.unlinkSync(dir + "/" + sortedFiles[0].file);
+			return res.status(401).send({
+				error: "S'ha arribat al límit de 10 fitxers",
+			});
+		}
 	} else {
 		fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 		return res.status(401).send({
