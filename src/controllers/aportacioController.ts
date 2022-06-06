@@ -1,14 +1,12 @@
 import { RequestHandler, Request, Response } from "express";
 import aportacio from "../models/aportacio";
 import user from "../models/user";
-import grau from "../models/grau";
 import comentari from "../models/comentari";
 import fs from "fs";
 import { zip } from "zip-a-folder";
 import assignatura from "../models/assignatura";
 import mime from "mime-types";
-import { listeners } from "process";
-
+import path from "path";
 //------------------------------------
 //
 //		PUBLICS
@@ -386,6 +384,22 @@ const addFile: RequestHandler = async (req: Request, res: Response) => {
 				error: "Aportació no vàlida",
 			});
 		}
+		let dir = "./public/files/" + aportacioId;
+		fs.readdir("./public/files/" + aportacioId, (err, files) => {
+			if (files.length > 10) {
+				let sortedFiles = fs
+					.readdirSync(dir)
+					.filter((file) =>
+						fs.lstatSync(path.join(dir, file)).isFile()
+					)
+					.map((file) => ({
+						file,
+						mtime: fs.lstatSync(path.join(dir, file)).mtime,
+					}))
+					.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+				fs.unlinkSync(dir + "/" + sortedFiles[0].file);
+			}
+		});
 	} else {
 		fs.rmSync("./public/files/" + aportacioId, { recursive: true });
 		return res.status(401).send({
