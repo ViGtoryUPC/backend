@@ -132,9 +132,19 @@ const emailValidation: RequestHandler = async (req: Request, res: Response) => {
 					email: usuari.newEmail,
 				});
 			}
+			await user.deleteMany({
+				email: usuari.email,
+				emailConfirmed: false,
+				emailStudentConfirmed: false,
+			});
 		} else {
 			await user.findByIdAndUpdate(usuari._id, {
 				emailStudentConfirmed: true,
+			});
+			await user.deleteMany({
+				emailStudent: usuari.emailStudent,
+				emailConfirmed: false,
+				emailStudentConfirmed: false,
 			});
 		}
 		await Token.findByIdAndRemove(token._id);
@@ -174,9 +184,15 @@ const signUp: RequestHandler = async (req: Request, res: Response) => {
 		} else {
 			let emailUser: String;
 			if (isStudentMail(email)) {
-				emailUser = await user.findOne({ emailStudent: email });
+				emailUser = await user.findOne({
+					emailStudent: email,
+					emailStudentConfirmed: true,
+				});
 			} else {
-				emailUser = await user.findOne({ email: email });
+				emailUser = await user.findOne({
+					email: email,
+					emailConfirmed: true,
+				});
 			}
 			if (emailUser) {
 				errors.push("Aquest email ja està en ús.");
@@ -337,8 +353,8 @@ const afegirSegonCorreu: RequestHandler = async (
 		});
 	}
 	if (
-		(isStudentMail(email) && usuari.emailStudent != null) ||
-		(!isStudentMail(email) && usuari.email != null)
+		(isStudentMail(email) && usuari.emailStudentConfirmed == true) ||
+		(!isStudentMail(email) && usuari.emailConfirmed != null)
 	) {
 		return res.status(401).send({
 			error: "L'usuari ja té un email d'aquest tipus.",
