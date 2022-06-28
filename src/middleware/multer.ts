@@ -7,12 +7,19 @@ const storage = multer.diskStorage({
 		const dir = "./public/files/" + aportacio;
 		fs.exists(dir, (exist) => {
 			if (!exist) {
-				return fs.mkdir(dir, (error) => cb(error, dir));
+				return fs.mkdir(dir, (error) => {
+					if (error && error.code === "EEXIST"){
+						return cb(null, dir);
+					}
+					else
+						cb(error, dir);
+				});
 			}
 			return cb(null, dir);
 		});
 	},
 	filename: (req, file, cb) => {
+		//console.log(file.originalname);
 		cb(null, file.originalname);
 	},
 });
